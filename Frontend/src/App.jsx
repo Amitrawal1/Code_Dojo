@@ -14,18 +14,29 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  const user = localStorage.getItem('codedojo_user');
+
   return (
     <BrowserRouter>
       <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={<LandingPage />} />
-        <Route path="/login" element={<LoginPage />} />
+        {/* Public Routes - Redirect to Home if already logged in */}
+        <Route 
+          path="/" 
+          element={user ? <Navigate to="/home" replace /> : <LandingPage />} 
+        />
+        <Route 
+          path="/login" 
+          element={user ? <Navigate to="/home" replace /> : <LoginPage />} 
+        />
 
         {/* Protected Routes */}
         <Route path="/home" element={<ProtectedRoute><HomePage /></ProtectedRoute>} />
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/dojomap" element={<ProtectedRoute><DojoMap /></ProtectedRoute>} />
         <Route path="/problem/:id" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
+        
+        {/* Fallback */}
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </BrowserRouter>
   );
