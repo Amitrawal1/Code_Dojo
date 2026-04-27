@@ -5,13 +5,54 @@ import CodeEditor from '../components/editor/CodeEditor';
 import AiChat from '../components/chat/AiChat';
 import { problems } from '../../../../Backend/data/dsaProblems.js';
 
+const API_BASE = 'http://localhost:5001/api/ai';
+
 export default function Workspace() {
     const { id } = useParams();
     const navigate = useNavigate();
     const problem = problems[id];
     const [language, setLanguage] = useState('python');
 
+    // Submission gatekeeper state
+    const [submissionState, setSubmissionState] = useState('idle'); // idle | questioning | approved | rejected
+    const [gatekeeperQuestion, setGatekeeperQuestion] = useState('');
+
     if (!problem) return <div className="p-8 text-white h-screen bg-gray-900 flex items-center justify-center">Problem not found!</div>;
+
+    // Called when user clicks Submit in CodeEditor
+    const handleSubmit = async (code) => {
+        setSubmissionState('questioning');
+
+        try {
+            const res = await fetch(`${API_BASE}/ask-question`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    problemTitle: problem.title,
+                    problemDescription: problem.description,
+                    userCode: code,
+                    language
+                })
+            });
+            const data = await res.json();
+            setGatekeeperQuestion(data.question);
+        } catch (error) {
+            console.error('Failed to get question:', error);
+            setGatekeeperQuestion('What is the time complexity of your solution and why?');
+        }
+    };
+
+    // Called when AI approves the answer
+    const handleApproved = () => {
+        setSubmissionState('approved');
+    };
+
+    // Called when user exhausts all attempts
+    const handleRejected = () => {
+        setSubmissionState('rejected');
+        // Allow retry after 3 seconds
+        setTimeout(() => setSubmissionState('idle'), 5000);
+    };
 
     return (
         <div className="h-screen w-screen flex flex-col bg-gray-900 text-white overflow-hidden">
@@ -91,6 +132,8 @@ export default function Workspace() {
                         <CodeEditor 
                             starterCode={problem.starterCode?.[language]} 
                             language={language}
+                            onSubmit={handleSubmit}
+                            submissionState={submissionState}
                         />
                     </Panel>
 
@@ -101,7 +144,13 @@ export default function Workspace() {
 
                     {/* Panel 3: AI Chat */}
                     <Panel defaultSize={25} minSize={15} className="p-2 h-full">
-                        <AiChat />
+                        <AiChat 
+                            gatekeeperQuestion={gatekeeperQuestion}
+                            submissionState={submissionState}
+                            onApproved={handleApproved}
+                            onRejected={handleRejected}
+                            problemTitle={problem.title}
+                        />
                     </Panel>
 
                 </PanelGroup>
