@@ -89,34 +89,6 @@ export default function DojoMap() {
       {/* ===== LEFT: MAP AREA ===== */}
       <div className="flex-1 flex flex-col">
 
-        {/* Top Nav */}
-        <header className="h-14 bg-[#161b22] border-b border-gray-800 flex items-center px-6 justify-between shrink-0">
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2">
-              <span className="bg-cyan-500 text-black text-xs font-bold px-2 py-0.5 rounded">✕</span>
-              <span className="text-white font-bold tracking-wider">CODE <span className="text-cyan-400">DOJO</span></span>
-              <span className="text-gray-600 text-xs">v2.1</span>
-            </div>
-            <div className="h-6 w-px bg-gray-700 mx-2"></div>
-            <button className="bg-cyan-500/20 text-cyan-400 border border-cyan-500/50 px-4 py-1.5 rounded-full text-sm font-bold tracking-wider hover:bg-cyan-500/30 transition">
-              ◆ Dojo Map
-            </button>
-            <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white px-3 py-1.5 text-sm transition">
-              ⚔ Arena
-            </button>
-            <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white px-3 py-1.5 text-sm transition">
-              △ Dashboard
-            </button>
-          </div>
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-cyan-500 rounded-full flex items-center justify-center text-xs font-bold text-black">87</div>
-            <div className="text-right">
-              <div className="text-sm font-bold text-white">User</div>
-              <div className="text-xs text-gray-500">Level 2 · Seeker</div>
-            </div>
-          </div>
-        </header>
-
         {/* Map Content */}
         <div className="flex-1 relative p-8 overflow-hidden">
           {/* Title */}
@@ -206,16 +178,6 @@ export default function DojoMap() {
             backgroundSize: '30px 30px'
           }}></div>
         </div>
-
-        {/* Bottom Status Bar */}
-        <footer className="h-8 bg-[#161b22] border-t border-gray-800 flex items-center px-6 text-xs text-gray-600 justify-between shrink-0">
-          <div className="flex items-center gap-4">
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-green-500"></span> Grog 3P1 · 0.9s</span>
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-gray-500"></span> Judge0</span>
-            <span className="flex items-center gap-1.5"><span className="w-1.5 h-1.5 rounded-full bg-yellow-500"></span> MongoDB</span>
-          </div>
-          <div className="tracking-wider">SOCRATIC GATEKEEPER · ELENCHUS v3 · Anti-Cheat Active</div>
-        </footer>
       </div>
 
       {/* ===== RIGHT: SIDEBAR ===== */}

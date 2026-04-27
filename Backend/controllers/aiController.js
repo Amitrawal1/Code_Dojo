@@ -1,34 +1,56 @@
 // AI Controller — Gemini 1.5 Flash Socratic Gatekeeper
 
+// Memory to keep track of current key index across requests
+let currentKeyIndex = 0;
+
 async function callGemini(prompt) {
-  const apiKey = process.env.GEMINI_API_KEY;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
-
-  const response = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      contents: [
-        {
-          parts: [{ text: prompt }]
-        }
-      ],
-      generationConfig: {
-        temperature: 0.7,
-        maxOutputTokens: 500,
-      }
-    }),
-  });
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(`Gemini API Error: ${response.status} - ${errorText}`);
+  const keys = (process.env.GEMINI_API_KEYS || "").split(",").map(k => k.trim()).filter(k => k);
+  
+  if (keys.length === 0) {
+    throw new Error("No Gemini API keys found in .env. Please add GEMINI_API_KEYS.");
   }
 
-  const data = await response.json();
-  return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI.";
+  // We try up to 'keys.length' times (to rotate through all keys if needed)
+  for (let attempt = 0; attempt < keys.length; attempt++) {
+    const apiKey = keys[currentKeyIndex];
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: { temperature: 0.7, maxOutputTokens: 500 }
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        return data.candidates?.[0]?.content?.parts?.[0]?.text || "No response from AI.";
+      }
+
+      // If Rate Limit hit (429), switch key and continue loop
+      if (response.status === 429) {
+        console.warn(`⚠️ Key ${currentKeyIndex + 1} exhausted. Rotating to next key...`);
+        currentKeyIndex = (currentKeyIndex + 1) % keys.length;
+        continue; 
+      }
+
+      // Other errors
+      throw new Error(`Gemini API Error: ${response.status} - ${data.error?.message || "Unknown error"}`);
+
+    } catch (error) {
+      // If it's the last attempt and still failing
+      if (attempt === keys.length - 1) {
+        throw error;
+      }
+      // Otherwise, log and try next key
+      console.error(`Error with key ${currentKeyIndex + 1}:`, error.message);
+      currentKeyIndex = (currentKeyIndex + 1) % keys.length;
+    }
+  }
 }
 
 // @desc    Generate a logical question about user's code/approach
