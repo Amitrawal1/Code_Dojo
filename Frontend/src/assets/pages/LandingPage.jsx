@@ -54,7 +54,8 @@ export default function LandingPage() {
       {/* STICKY CARDS SECTION */}
       <section ref={containerRef} className="relative">
         <div className="sticky top-0 z-[60] py-10 px-8 bg-[#0d1117]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between">
-          
+          <h2 className="text-sm font-bold tracking-[0.3em] uppercase text-gray-500">The Arena Flow</h2>
+          <div className="text-xs font-mono text-cyan-500/50">PROCEED WITH LOGIC_</div>
         </div>
 
         <div className="relative" style={{ height: `${STEPS.length * 100}vh` }}>

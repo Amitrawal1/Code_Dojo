@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, useTransform } from 'framer-motion';
-import { Brain, Terminal, GitBranch } from 'lucide-react';
+import { Brain, Terminal, GitBranch, Award } from 'lucide-react';
 
 export const STEPS = [
   {
@@ -21,14 +21,19 @@ export const STEPS = [
     chips: ['Editor gated', 'Syntax highlighted', 'Live test runner'],
     icon: Brain,
   },
-  
+  {
+    n: '04', title: 'Earn Your Rank',
+    longDesc: 'Every logic check passed and problem solved earns you XP. Climb the leaderboard and unlock higher-level dojos where the real masters train.',
+    chips: ['Global Ranking', 'XP System', 'Master Badges'],
+    icon: Award,
+  },
 ];
 
 const CARD_COLORS = [
   { bg: 'linear-gradient(135deg,#1a0a3e 0%,#0f0630 100%)', accent: '#a78bfa', num: 'rgba(167,139,250,0.12)', border: 'rgba(167,139,250,0.2)' },
   { bg: 'linear-gradient(135deg,#001f3d 0%,#00152a 100%)', accent: '#38bdf8', num: 'rgba(56,189,248,0.12)',   border: 'rgba(56,189,248,0.2)'  },
   { bg: 'linear-gradient(135deg,#0d2e1a 0%,#071a0f 100%)', accent: '#22c55e', num: 'rgba(34,197,94,0.12)',    border: 'rgba(34,197,94,0.2)'   },
-  
+  { bg: 'linear-gradient(135deg,#3d2b00 0%,#2a1c00 100%)', accent: '#fbbf24', num: 'rgba(251,191,36,0.12)',   border: 'rgba(251,191,36,0.2)'   },
 ];
 
 export default function StickyStepCard({ step, index, total, scrollYProgress }) {

@@ -2,15 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { problems } from '../../../../Backend/data/dsaProblems.js';
 
-// Mock history data
-const solvedHistory = [
-  { problemIdx: 0, date: '2026-04-25', attempts: 1, logicScore: 95 },
-  { problemIdx: 1, date: '2026-04-26', attempts: 2, logicScore: 87 },
-];
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('codedojo_user') || '{}');
+  const solvedHistory = JSON.parse(localStorage.getItem('solved_problems') || '[]');
 
   return (
     <div className="min-h-screen bg-[#0d1117] text-white relative">
