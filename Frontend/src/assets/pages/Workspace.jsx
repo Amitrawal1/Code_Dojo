@@ -15,13 +15,14 @@ export default function Workspace() {
 
     // Submission gatekeeper state
     const [submissionState, setSubmissionState] = useState('idle'); // idle | questioning | approved | rejected
-    const [gatekeeperQuestion, setGatekeeperQuestion] = useState('');
+    const [mcqData, setMcqData] = useState(null);
 
     if (!problem) return <div className="p-8 text-white h-screen bg-gray-900 flex items-center justify-center">Problem not found!</div>;
 
     // Called when user clicks Submit in CodeEditor
     const handleSubmit = async (code) => {
         setSubmissionState('questioning');
+        setMcqData(null); // Reset previous MCQ
 
         try {
             const res = await fetch(`${API_BASE}/ask-question`, {
@@ -35,16 +36,43 @@ export default function Workspace() {
                 })
             });
             const data = await res.json();
-            setGatekeeperQuestion(data.question);
+            if (data.question && data.options) {
+                setMcqData(data);
+            } else {
+                // Fallback MCQ if AI fails
+                setMcqData({
+                    question: 'What is the time complexity of your solution?',
+                    options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
+                    correctAnswerIndex: 2,
+                    explanation: 'Most basic array traversals run in O(n) time.'
+                });
+            }
         } catch (error) {
-            console.error('Failed to get question:', error);
-            setGatekeeperQuestion('What is the time complexity of your solution and why?');
+            console.error('Failed to get MCQ:', error);
+            setMcqData({
+                question: 'What is the time complexity of your solution?',
+                options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
+                correctAnswerIndex: 2,
+                explanation: 'Most basic array traversals run in O(n) time.'
+            });
         }
     };
 
     // Called when AI approves the answer
     const handleApproved = () => {
         setSubmissionState('approved');
+        
+        // Save to localStorage so Dashboard/Map can see it
+        const saved = JSON.parse(localStorage.getItem('solved_problems') || '[]');
+        if (!saved.find(s => s.problemIdx === parseInt(id))) {
+            saved.push({
+                problemIdx: parseInt(id),
+                date: new Date().toISOString().split('T')[0],
+                attempts: 1,
+                logicScore: 95 // Mock logic score
+            });
+            localStorage.setItem('solved_problems', JSON.stringify(saved));
+        }
     };
 
     // Called when user exhausts all attempts
@@ -145,7 +173,7 @@ export default function Workspace() {
                     {/* Panel 3: AI Chat */}
                     <Panel defaultSize={25} minSize={15} className="p-2 h-full">
                         <AiChat 
-                            gatekeeperQuestion={gatekeeperQuestion}
+                            mcqData={mcqData}
                             submissionState={submissionState}
                             onApproved={handleApproved}
                             onRejected={handleRejected}
