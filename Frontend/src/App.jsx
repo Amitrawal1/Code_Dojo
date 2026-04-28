@@ -5,6 +5,7 @@ import HomePage from './assets/pages/HomePage';
 import Dashboard from './assets/pages/Dashboard';
 import DojoMap from './assets/pages/DojoMap';
 import Workspace from './assets/pages/Workspace';
+import { ProgressProvider } from './context/ProgressContext';
 import './App.css';
 
 // Protected Route — redirects to landing if not logged in
@@ -17,7 +18,8 @@ function App() {
   const user = localStorage.getItem('codedojo_user');
 
   return (
-    <BrowserRouter>
+    <ProgressProvider>
+      <BrowserRouter>
       <Routes>
         {/* Public Routes - Redirect to Home if already logged in */}
         <Route 
@@ -38,7 +40,8 @@ function App() {
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+      </BrowserRouter>
+    </ProgressProvider>
   );
 }
 

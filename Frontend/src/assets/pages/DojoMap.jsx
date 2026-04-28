@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { problems } from '../../../../Backend/data/dsaProblems.js';
+import { useProgress } from '../../context/ProgressContext';
 
 // ============================================================
 //  TOPIC GRID DATA — 3 columns × 3 rows
@@ -80,9 +81,14 @@ function ProgressRing({ percent, size = 120, stroke = 4, accent = '#38bdf8' }) {
 export default function DojoMap() {
   const navigate = useNavigate();
   const [selectedNode, setSelectedNode] = useState(null);
+  const { profileData, loading } = useProgress();
 
-  // Solved data from localStorage
-  const solvedHistory = JSON.parse(localStorage.getItem('solved_problems') || '[]');
+  if (loading || !profileData) {
+    return <div className="h-screen w-screen bg-[#0d1117] flex items-center justify-center text-cyan-400 font-mono">LOADING MAP DATA...</div>;
+  }
+
+  // Solved data from Global State
+  const solvedHistory = profileData.proofOfWork.solvedHistory || [];
 
   // Helper: get problems belonging to a topic
   function getTopicProblems(topic) {

@@ -9,6 +9,7 @@ import connectDB from "./config/db.js";
 import runRoutes from "./routes/runRoutes.js";
 import submitRoutes from "./routes/submitRoutes.js";
 import aiRoutes from "./routes/aiRoutes.js";
+import progressRoutes from "./routes/progressRoutes.js";
 
 // Middleware
 import errorHandler from "./middleware/errorMiddleware.js";
@@ -35,6 +36,7 @@ app.get("/", (req, res) => {
 app.use("/api/run", runRoutes);
 app.use("/api/submit", submitRoutes);
 app.use("/api/ai", aiRoutes);
+app.use("/api/progress", progressRoutes);
 
 // Error handler
 app.use(errorHandler);

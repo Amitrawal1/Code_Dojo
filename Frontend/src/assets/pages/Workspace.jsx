@@ -4,14 +4,50 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'reac
 import CodeEditor from '../components/editor/CodeEditor';
 import AiChat from '../components/chat/AiChat';
 import { problems } from '../../../../Backend/data/dsaProblems.js';
+import { useProgress } from '../../context/ProgressContext';
 
 const API_BASE = 'http://localhost:5001/api/ai';
 
 export default function Workspace() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const problem = problems[id];
+    const baseProblem = problems[id];
+    const { submitProblemAction } = useProgress();
     const [language, setLanguage] = useState('python');
+    const [problem, setProblem] = useState(baseProblem);
+    const [isLoadingLeetcode, setIsLoadingLeetcode] = useState(false);
+    const [isHtmlDesc, setIsHtmlDesc] = useState(false);
+
+    // Fetch LeetCode API data
+    React.useEffect(() => {
+        if (!baseProblem) return;
+        
+        const fetchLeetcodeData = async () => {
+            setIsLoadingLeetcode(true);
+            try {
+                // Convert "Two Sum" -> "two-sum"
+                const slug = baseProblem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+                const res = await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${slug}`);
+                if (!res.ok) throw new Error('Network response was not ok');
+                const data = await res.json();
+                
+                if (data && data.question) {
+                    setProblem(prev => ({
+                        ...prev,
+                        description: data.question
+                    }));
+                    setIsHtmlDesc(true);
+                }
+            } catch (err) {
+                console.warn("Failed to fetch from LeetCode API, using fallback local data.", err);
+                setIsHtmlDesc(false);
+            } finally {
+                setIsLoadingLeetcode(false);
+            }
+        };
+
+        fetchLeetcodeData();
+    }, [baseProblem]);
 
     // Submission gatekeeper state
     const [submissionState, setSubmissionState] = useState('idle'); // idle | questioning | approved | rejected
@@ -59,17 +95,25 @@ export default function Workspace() {
     };
 
     // Called when AI approves the answer
-    const handleApproved = () => {
+    const handleApproved = async () => {
         setSubmissionState('approved');
         
-        // Save to localStorage so Dashboard/Map can see it
+        // Calculate dynamic logic score and XP based on difficulty
+        const logicScore = 85 + Math.floor(Math.random() * 15); // Random high score 85-99
+        let xpGained = 100;
+        if (problem.difficulty === 'Medium') xpGained = 250;
+        if (problem.difficulty === 'Hard') xpGained = 500;
+
+        await submitProblemAction(parseInt(id), problem.title, problem.difficulty, logicScore, xpGained);
+
+        // Also save to localStorage as a fallback for some components
         const saved = JSON.parse(localStorage.getItem('solved_problems') || '[]');
         if (!saved.find(s => s.problemIdx === parseInt(id))) {
             saved.push({
                 problemIdx: parseInt(id),
                 date: new Date().toISOString().split('T')[0],
                 attempts: 1,
-                logicScore: 95 // Mock logic score
+                logicScore
             });
             localStorage.setItem('solved_problems', JSON.stringify(saved));
         }
@@ -125,9 +169,18 @@ export default function Workspace() {
                             </div>
 
                             <div className="prose prose-invert max-w-none">
-                                <p className="text-gray-300 leading-relaxed text-lg mb-8">
-                                    {problem.description}
-                                </p>
+                                {isLoadingLeetcode ? (
+                                    <div className="text-cyan-400 animate-pulse text-sm font-bold">Connecting to LeetCode API...</div>
+                                ) : isHtmlDesc ? (
+                                    <div 
+                                        className="text-gray-300 leading-relaxed text-[15px] mb-8 leetcode-content"
+                                        dangerouslySetInnerHTML={{ __html: problem.description }}
+                                    />
+                                ) : (
+                                    <p className="text-gray-300 leading-relaxed text-lg mb-8">
+                                        {problem.description}
+                                    </p>
+                                )}
 
                                 <div className="mt-8">
                                     <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">

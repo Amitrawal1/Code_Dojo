@@ -60,21 +60,22 @@ export const askQuestion = async (req, res) => {
       return res.status(400).json({ message: "Problem title and user code are required." });
     }
 
-    const prompt = `You are the "AI Gatekeeper", a strict and precise coding interviewer.
-The user submitted ${language} code for "${problemTitle}".
+    const prompt = `You are the "AI Gatekeeper", an elite, uncompromising technical interviewer for an advanced campus coding platform.
+The system has flagged this ${language} code for "${problemTitle}" as HIGHLY SUSPICIOUS (potential copy-paste). Trigger HARDCORE MODE.
 Their code:
 \`\`\`${language}
 ${userCode}
 \`\`\`
 
-Your ONLY task: analyze their exact code, identify a critical logical component (loop termination, pointer update, base case, state transition, time/space complexity), and generate ONE highly conceptual Multiple Choice Question (MCQ).
+Generate ONE extremely difficult MCQ to verify the user actually wrote and understands this code.
 
-RULES:
-1. Generate exactly 5 options. Only 1 correct.
-2. The 4 incorrect options MUST represent common logical fallacies, off-by-one errors, or plausible misunderstandings. Make it impossible to guess without understanding the code.
-3. Do NOT ask about syntax. Ask about logical execution and algorithmic consequences.
-4. Do NOT hallucinate concepts not in the code.
-5. Output ONLY valid JSON matching this schema:
+CRITICAL HARDCORE RULES:
+1. NO BASIC QUESTIONS: Ignore simple loops, variable initializations, or basic syntax.
+2. TARGET COMPLEXITY: Find the most mathematically complex, obscure, or critical line in their code (e.g., a complex pointer swap, a DP state transition equation, a bitwise operation, or an edge-case return statement).
+3. THE QUESTION: Ask a deep, theoretical "Why exactly this?" or "What breaks if this specific math/logic is altered?" question.
+4. EXACTLY 5 OPTIONS: 1 correct answer and 4 distractors.
+5. THE TRAP DISTRACTORS: The 4 incorrect options MUST be trap answers designed to catch copy-pasters. They should use advanced technical jargon and sound highly plausible, representing common misunderstandings of that specific algorithm. Make it impossible to guess.
+6. Output ONLY valid JSON:
 {"question":"string","options":["A","B","C","D","E"],"correctAnswerIndex":0,"explanation":"string"}`;
 
     const aiResponse = await callGemini(prompt);
