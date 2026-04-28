@@ -1,17 +1,20 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import LandingPage from './assets/pages/LandingPage';
-import LoginPage from './assets/pages/LoginPage';
-import HomePage from './assets/pages/HomePage';
-import Dashboard from './assets/pages/Dashboard';
-import DojoMap from './assets/pages/DojoMap';
-import Workspace from './assets/pages/Workspace';
-import { ProgressProvider } from './context/ProgressContext';
-import './App.css';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import LandingPage from "./assets/pages/LandingPage";
+import LoginPage from "./assets/pages/LoginPage";
+import HomePage from "./assets/pages/HomePage";
+import Dashboard from "./assets/pages/Dashboard";
+import DojoMap from "./assets/pages/DojoMap";
+import Workspace from "./assets/pages/Workspace";
+import { useAuth0 } from "@auth0/auth0-react";
+import { ProgressProvider } from "./context/ProgressContext";
+import "./App.css";
 
 // Protected Route — redirects to landing if not logged in
 function ProtectedRoute({ children }) {
-  const user = localStorage.getItem('codedojo_user');
-  return user ? children : <Navigate to="/" replace />;
+  const { isAuthenticated, isLoading } = useAuth0();
+  const user = localStorage.getItem("codedojo_user");
+  if (isLoading) return <div>Loading...</div>;
+  return user || isAuthenticated ? children : <Navigate to="/" replace />;
 }
 
 function App() {
