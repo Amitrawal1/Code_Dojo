@@ -18,7 +18,12 @@ function ProtectedRoute({ children }) {
 }
 
 function App() {
+  const { isAuthenticated, isLoading } = useAuth0();
   const user = localStorage.getItem('codedojo_user');
+  
+  if (isLoading) return <div className="min-h-screen bg-[#0d1117] flex items-center justify-center text-cyan-400 font-mono">Loading App...</div>;
+
+  const isLoggedIn = user || isAuthenticated;
 
   return (
     <ProgressProvider>
@@ -27,11 +32,11 @@ function App() {
         {/* Public Routes - Redirect to Home if already logged in */}
         <Route 
           path="/" 
-          element={user ? <Navigate to="/home" replace /> : <LandingPage />} 
+          element={isLoggedIn ? <Navigate to="/home" replace /> : <LandingPage />} 
         />
         <Route 
           path="/login" 
-          element={user ? <Navigate to="/home" replace /> : <LoginPage />} 
+          element={isLoggedIn ? <Navigate to="/home" replace /> : <LoginPage />} 
         />
 
         {/* Protected Routes */}
