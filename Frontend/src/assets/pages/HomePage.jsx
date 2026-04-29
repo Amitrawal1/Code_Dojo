@@ -59,9 +59,15 @@ export default function HomePage() {
 
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between px-8 py-4 border-b border-gray-800/50">
-        <div className="flex items-center gap-2">
-          <span className="bg-cyan-500 text-black text-xs font-bold px-2 py-0.5 rounded">✕</span>
-          <span className="text-white font-bold tracking-wider text-lg">CODE <span className="text-cyan-400">DOJO</span></span>
+        <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
+            <span>←</span> Landing Page
+          </button>
+          <div className="h-5 w-px bg-gray-700"></div>
+          <div className="flex items-center gap-2">
+            <span className="bg-cyan-500 text-black text-xs font-bold px-2 py-0.5 rounded">✕</span>
+            <span className="text-white font-bold tracking-wider text-lg">CODE <span className="text-cyan-400">DOJO</span></span>
+          </div>
         </div>
         <div className="flex items-center gap-4">
           {/* Profile Icon → Dashboard */}

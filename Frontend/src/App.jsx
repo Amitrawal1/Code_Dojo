@@ -25,7 +25,7 @@ function App() {
         {/* Public Routes - Redirect to Home if already logged in */}
         <Route 
           path="/" 
-          element={user ? <Navigate to="/home" replace /> : <LandingPage />} 
+          element={<LandingPage />} 
         />
         <Route 
           path="/login" 
