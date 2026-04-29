@@ -126,7 +126,7 @@ export default function DojoMap() {
         <div className="grid grid-cols-3 gap-2 px-5 pb-1 shrink-0">
           {columns.map((col, ci) => (
             <div key={ci} className="text-center pb-1" style={{ borderBottom: `1.5px solid ${col.accent}33` }}>
-              <span className="text-[11px] font-black tracking-[0.2em] uppercase" style={{ color: col.accent }}>
+              <span className="text-[14px] font-black tracking-[0.2em] uppercase" style={{ color: col.accent }}>
                 {col.heading}
               </span>
             </div>
@@ -154,14 +154,14 @@ export default function DojoMap() {
                       }`}
                   >
                     {/* % label */}
-                    <div className="text-[11px] font-bold" style={{ color: accent }}>{progress}%</div>
+                    <div className="text-[14px] font-bold" style={{ color: accent }}>{progress}%</div>
 
                     {/* Ring with icon inside — centred */}
-                    <div className="relative w-[52px] h-[52px] flex items-center justify-center">
-                      <ProgressRing percent={progress} size={52} stroke={3} accent={accent} />
+                    <div className="relative w-[60px] h-[60px] flex items-center justify-center">
+                      <ProgressRing percent={progress} size={60} stroke={4} accent={accent} />
                       <div className="absolute inset-0 flex items-center justify-center">
                         <div
-                          className="w-[38px] h-[38px] rounded-full bg-[#1a1f2e] border border-gray-700/50 flex items-center justify-center text-sm transition-colors"
+                          className="w-[44px] h-[44px] rounded-full bg-[#1a1f2e] border border-gray-700/50 flex items-center justify-center text-lg transition-colors"
                           style={isSelected ? { color: accent, borderColor: `${accent}44` } : { color: '#6b7280' }}
                         >
                           {topic.icon}
@@ -171,14 +171,14 @@ export default function DojoMap() {
 
                     {/* Label */}
                     <div
-                      className="text-[10px] font-bold tracking-[0.1em] uppercase leading-tight text-center px-1"
-                      style={{ color: isSelected ? accent : '#6b7280' }}
+                      className="text-[13px] font-bold tracking-[0.1em] uppercase leading-tight text-center px-1"
+                      style={{ color: accent }}
                     >
                       {topic.label}
                     </div>
 
                     {/* Problem count */}
-                    <div className="text-[9px] text-gray-600">{totalProblems}p</div>
+                    <div className="text-[11px] text-gray-600">{totalProblems}p</div>
                   </button>
                 );
               })}

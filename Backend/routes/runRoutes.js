@@ -1,9 +1,8 @@
-import express from "express";
+import express from 'express';
+import { executeCode } from '../controllers/executionController.js';
 
 const router = express.Router();
 
-router.get("/", (req, res) => {
-  res.send("Run route is working");
-});
+router.post('/', executeCode);
 
 export default router;
