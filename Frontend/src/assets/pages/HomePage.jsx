@@ -1,5 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useProgress } from '../../context/ProgressContext';
+import TrackerCalendar from '../components/dojomap/TrackerCalendar';
 
 const sections = [
   {
@@ -43,6 +45,8 @@ const colorMap = {
 export default function HomePage() {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem('codedojo_user') || '{}');
+  const { profileData } = useProgress();
+  const proofOfWork = profileData?.proofOfWork || { activityHeatmap: [] };
 
   const handleLogout = () => {
     localStorage.removeItem('codedojo_user');
@@ -57,35 +61,13 @@ export default function HomePage() {
         backgroundSize: '30px 30px'
       }}></div>
 
-      {/* Navbar */}
-      <nav className="relative z-10 flex items-center justify-between px-8 py-4 border-b border-gray-800/50">
-        <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
-            <span>←</span> Landing Page
-          </button>
-          <div className="h-5 w-px bg-gray-700"></div>
-          <div className="flex items-center gap-2">
-            <span className="bg-cyan-500 text-black text-xs font-bold px-2 py-0.5 rounded">✕</span>
-            <span className="text-white font-bold tracking-wider text-lg">CODE <span className="text-cyan-400">DOJO</span></span>
-          </div>
-        </div>
-        <div className="flex items-center gap-4">
-          {/* Profile Icon → Dashboard */}
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="w-10 h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-black font-bold text-sm hover:scale-110 transition-transform shadow-lg shadow-cyan-500/20"
-            title="Dashboard"
-          >
-            {(user.name || 'U').charAt(0).toUpperCase()}
-          </button>
-          <button onClick={handleLogout} className="text-gray-500 hover:text-red-400 text-xs transition font-medium">
-            Logout
-          </button>
-        </div>
-      </nav>
+      {/* Fixed Right Sidebar for Tracker Calendar */}
+      <div className="hidden lg:block fixed right-8 top-28 w-72 bg-[#12161d]/90 backdrop-blur-md border border-gray-800 rounded-2xl overflow-hidden z-40 shadow-2xl">
+        <TrackerCalendar />
+      </div>
 
       {/* Main Content */}
-      <main className="relative z-10 px-8 py-12 max-w-6xl mx-auto">
+      <main className="relative z-10 px-8 pt-24 pb-12 max-w-6xl mx-auto lg:pr-96">
         <div className="mb-12">
           <div className="text-gray-500 text-xs uppercase tracking-[0.3em] mb-2">Welcome back</div>
           <h1 className="text-4xl font-bold text-white">Choose Your Arena, <span className="text-cyan-400">{user.name || 'Coder'}</span></h1>

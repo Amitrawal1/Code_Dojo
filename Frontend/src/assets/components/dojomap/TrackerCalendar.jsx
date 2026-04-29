@@ -4,10 +4,10 @@ const MONTHS = ['January','February','March','April','May','June','July','August
 
 // Activity level → color
 const getHeatmapColor = (lv) => {
-  if (lv === 4) return '#39d353';
-  if (lv === 3) return '#26a641';
-  if (lv === 2) return '#196b37';
-  if (lv === 1) return '#0e4429';
+  if (lv === 4) return '#f97316';
+  if (lv === 3) return '#ea580c';
+  if (lv === 2) return '#c2410c';
+  if (lv === 1) return '#9a3412';
   return '#2e2e2e'; // 0 = no activity
 };
 
@@ -116,17 +116,17 @@ export default function TrackerCalendar() {
     const ds = date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
 
     cells.push(
-      <div
-        key={day}
-        className={`aspect-square rounded-full flex items-center justify-center
-          text-[9px] font-bold text-white select-none
-          transition-all duration-100
-          ${isFuture
-            ? 'opacity-20 pointer-events-none'
-            : 'cursor-pointer hover:scale-125 hover:z-20 relative z-10'
-          }
+      <div key={day} className="aspect-square flex items-center justify-center">
+        <div
+          className={`w-3.5 h-3.5 rounded-full flex items-center justify-center
+            text-[9px] font-bold text-white select-none
+            transition-all duration-100
+            ${isFuture
+              ? 'opacity-20 pointer-events-none'
+              : 'cursor-pointer hover:scale-150 hover:z-20 relative z-10'
+            }
           ${isToday ? 'ring-[1.5px] ring-[#2d8de0]' : ''}
-          ${!isFuture && !isToday ? 'hover:ring-[1.5px] hover:ring-[#39d353]' : ''}
+          ${!isFuture && !isToday ? 'hover:ring-[1.5px] hover:ring-[#f97316]' : ''}
         `}
         style={{ backgroundColor: isFuture ? '#1a1a1a' : getHeatmapColor(lv) }}
         onMouseEnter={(e) => !isFuture && setTip({
@@ -138,8 +138,9 @@ export default function TrackerCalendar() {
         })}
         onMouseMove={(e) => setTip(prev => ({ ...prev, x: e.clientX, y: e.clientY }))}
         onMouseLeave={() => setTip(prev => ({ ...prev, show: false }))}
-      >
-        {day}
+        >
+          {/* Empty circle */}
+        </div>
       </div>
     );
   }
@@ -154,7 +155,7 @@ export default function TrackerCalendar() {
             bg-[#1e1e1e] border border-[#333] rounded-lg px-3 py-2 shadow-xl"
           style={{ left: tip.x + 12, top: tip.y - 44 }}
         >
-          <div className="text-[10px] font-semibold text-[#39d353]">{tip.text}</div>
+          <div className="text-[10px] font-semibold text-[#f97316]">{tip.text}</div>
           <div className="text-[9px] text-[#777] mt-0.5">{tip.sub}</div>
         </div>
       )}
@@ -168,7 +169,7 @@ export default function TrackerCalendar() {
           <circle
             cx="50" cy="50" r="45"
             fill="none"
-            stroke="#39d353"
+            stroke="#f97316"
             strokeWidth="7"
             strokeLinecap="round"
             strokeDasharray="283"
@@ -202,7 +203,7 @@ export default function TrackerCalendar() {
         <button
           onClick={handlePrev}
           className="w-6 h-6 flex items-center justify-center rounded border border-[#333]
-            text-[#666] text-sm hover:border-[#39d353] hover:text-[#39d353] transition-colors"
+            text-[#666] text-sm hover:border-[#f97316] hover:text-[#f97316] transition-colors"
         >
           ‹
         </button>
@@ -212,7 +213,7 @@ export default function TrackerCalendar() {
         <button
           onClick={handleNext}
           className="w-6 h-6 flex items-center justify-center rounded border border-[#333]
-            text-[#666] text-sm hover:border-[#39d353] hover:text-[#39d353] transition-colors"
+            text-[#666] text-sm hover:border-[#f97316] hover:text-[#f97316] transition-colors"
         >
           ›
         </button>
@@ -224,7 +225,7 @@ export default function TrackerCalendar() {
           <div
             key={d}
             className={`text-center text-[8px] font-semibold py-0.5
-              ${i === 0 || i === 6 ? 'text-[#2d8de0]' : 'text-[#39d353]'}`}
+              ${i === 0 || i === 6 ? 'text-[#2d8de0]' : 'text-[#f97316]'}`}
           >
             {d}
           </div>
@@ -239,7 +240,7 @@ export default function TrackerCalendar() {
       {/* Legend */}
       <div className="flex items-center justify-end gap-1 mt-2.5 text-[8px] text-[#666]">
         <span>less</span>
-        {['#2e2e2e','#0e4429','#196b37','#26a641','#39d353'].map(c => (
+        {['#2e2e2e','#9a3412','#c2410c','#ea580c','#f97316'].map(c => (
           <div key={c} className="w-2 h-2 rounded-full" style={{ backgroundColor: c }} />
         ))}
         <span>more</span>

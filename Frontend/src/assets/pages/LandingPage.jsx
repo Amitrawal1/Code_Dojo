@@ -26,10 +26,10 @@ export default function LandingPage() {
       
 
       {/* Hero Section */}
-      <section className="relative z-0 pt-32 pb-20 px-6 flex flex-col items-center text-center overflow-hidden">
-        <div className="absolute inset-x-0 top-0 h-[640px] pointer-events-none z-0">
+      <section className="relative z-0 min-h-screen flex flex-col items-center justify-center text-center overflow-hidden px-6">
+        <div className="absolute inset-0 pointer-events-none z-0">
           <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_20%,rgba(34,211,238,0.14)_0%,rgba(14,165,233,0.08)_38%,transparent_72%)]" />
-          <div style={{ width: '100%', height: '600px', position: 'relative', pointerEvents: 'auto' }}>
+          <div style={{ width: '100%', height: '100%', position: 'relative', pointerEvents: 'auto' }}>
             <Particles
               particleColors={["#a669ed"]}
               particleCount={400}
@@ -63,35 +63,11 @@ export default function LandingPage() {
           Don't just solve problems. <span className="text-white font-bold underline decoration-cyan-500/50">Master the logic</span>. 
           The only platform where an AI gatekeeper checks your understanding before your code.
         </motion.p>
-        <motion.button 
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          onClick={() => navigate('/login')}
-          className="relative z-10 mt-4 group bg-white text-black px-8 py-4 rounded-2xl text-lg font-black transition-all hover:scale-105 active:scale-95 flex items-center gap-2 shadow-2xl shadow-white/10"
-        >
-          Enter the Dojo <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
-        </motion.button>
         
       </section>
 
       {/* STICKY CARDS SECTION */}
       <section ref={containerRef} className="relative pt-16 md:pt-20">
-        <div className="sticky top-0 z-[60] py-3 md:py-5 px-8 bg-[#0d1117]/90 backdrop-blur-md border-b border-white/5 flex items-center justify-between">
-          <h2 className="text-xs md:text-sm font-bold tracking-[0.3em] uppercase text-gray-500">The Arena Flow</h2>
-          <div className="flex items-center gap-4 md:gap-6">
-            <button 
-              onClick={() => {
-                const userStr = localStorage.getItem('codedojo_user');
-                navigate(userStr ? '/dashboard' : '/login');
-              }}
-              className="w-9 h-9 md:w-10 md:h-10 rounded-full bg-gradient-to-br from-cyan-500 to-blue-500 flex items-center justify-center text-black font-bold text-sm hover:scale-110 transition-transform shadow-lg shadow-cyan-500/20"
-              title="Profile / Login"
-            >
-              {localStorage.getItem('codedojo_user') ? JSON.parse(localStorage.getItem('codedojo_user')).name?.charAt(0).toUpperCase() || 'U' : '→'}
-            </button>
-          </div>
-        </div>
 
         <div className="relative" style={{ height: `${STEPS.length * 100}vh` }}>
           {STEPS.map((step, i) => (
@@ -135,6 +111,16 @@ export default function LandingPage() {
         </div>
         <p className="text-gray-500 text-sm">Built for the next generation of logical thinkers.</p>
       </footer>
+      {/* FIXED CTA BUTTON — always visible */}
+      <motion.button 
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3 }}
+        onClick={() => navigate('/login')}
+        className="fixed bottom-10 left-1/2 -translate-x-1/2 z-[100] group bg-white text-black px-8 py-4 rounded-2xl text-lg font-black transition-all hover:scale-105 active:scale-95 flex items-center gap-2 shadow-2xl shadow-white/10"
+      >
+        Enter the Dojo <ChevronRight size={20} className="group-hover:translate-x-1 transition-transform" />
+      </motion.button>
     </div>
   );
 }

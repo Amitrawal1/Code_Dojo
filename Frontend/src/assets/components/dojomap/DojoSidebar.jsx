@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { problems } from '../../../../../Backend/data/dsaProblems.js';
-import TrackerCalendar from './TrackerCalendar';
 
 const diffColors = {
   easy:   { bg: 'bg-green-500/20', text: 'text-green-400', border: 'border-green-500/40' },
@@ -34,8 +33,7 @@ export default function DojoSidebar({ completedCount, logicAvg, selectedTopic, f
         </div>
       </div>
 
-      {/* Tracker Calendar */}
-      <TrackerCalendar />
+
 
       {/* Problems List */}
       <div className="flex-1 overflow-y-auto p-3 custom-scrollbar">

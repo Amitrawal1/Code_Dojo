@@ -93,7 +93,7 @@ export default function DojoMap() {
     : 0;
 
   return (
-    <div className="h-screen w-screen flex bg-[#0d1117] text-white overflow-hidden font-mono">
+    <div className="h-screen w-screen flex bg-[#0d1117] text-white overflow-hidden font-mono pt-20">
 
       {/* ===== LEFT: MAP GRID ===== */}
       <div className="flex-1 flex flex-col overflow-hidden min-w-0">
@@ -103,11 +103,6 @@ export default function DojoMap() {
           <div>
             <div className="text-gray-500 text-[9px] uppercase tracking-[0.3em]">DSA WORLD</div>
             <h1 className="text-base font-bold text-white tracking-tight leading-tight">The Arena Map</h1>
-          </div>
-          <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/')} className="text-gray-500 hover:text-white transition text-xs">← Landing</button>
-            <div className="h-3 w-px bg-gray-700" />
-            <button onClick={() => navigate('/home')} className="text-gray-500 hover:text-white transition text-xs">← Home</button>
           </div>
         </div>
 
@@ -131,7 +126,7 @@ export default function DojoMap() {
         <div className="grid grid-cols-3 gap-2 px-5 pb-1 shrink-0">
           {columns.map((col, ci) => (
             <div key={ci} className="text-center pb-1" style={{ borderBottom: `1.5px solid ${col.accent}33` }}>
-              <span className="text-[8px] font-black tracking-[0.2em] uppercase" style={{ color: col.accent }}>
+              <span className="text-[11px] font-black tracking-[0.2em] uppercase" style={{ color: col.accent }}>
                 {col.heading}
               </span>
             </div>
@@ -159,7 +154,7 @@ export default function DojoMap() {
                       }`}
                   >
                     {/* % label */}
-                    <div className="text-[9px] font-bold" style={{ color: accent }}>{progress}%</div>
+                    <div className="text-[11px] font-bold" style={{ color: accent }}>{progress}%</div>
 
                     {/* Ring with icon inside — centred */}
                     <div className="relative w-[52px] h-[52px] flex items-center justify-center">
@@ -176,14 +171,14 @@ export default function DojoMap() {
 
                     {/* Label */}
                     <div
-                      className="text-[7.5px] font-bold tracking-[0.1em] uppercase leading-tight text-center px-1"
+                      className="text-[10px] font-bold tracking-[0.1em] uppercase leading-tight text-center px-1"
                       style={{ color: isSelected ? accent : '#6b7280' }}
                     >
                       {topic.label}
                     </div>
 
                     {/* Problem count */}
-                    <div className="text-[7px] text-gray-700">{totalProblems}p</div>
+                    <div className="text-[9px] text-gray-600">{totalProblems}p</div>
                   </button>
                 );
               })}

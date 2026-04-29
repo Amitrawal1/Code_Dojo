@@ -37,22 +37,7 @@ export default function Dashboard() {
         backgroundSize: '40px 40px'
       }}></div>
 
-      {/* Navbar */}
-      <nav className="relative z-10 flex items-center justify-between px-8 py-5 border-b border-gray-800/50 bg-[#0d1117]/80 backdrop-blur-md">
-        <div className="flex items-center gap-6">
-          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
-            <span>←</span> Landing Page
-          </button>
-          <div className="h-5 w-px bg-gray-700"></div>
-          <button onClick={() => navigate('/home')} className="text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
-            <span>←</span> Home
-          </button>
-          <div className="h-5 w-px bg-gray-700"></div>
-          <span className="text-white font-bold tracking-[0.2em]">CODE <span className="text-cyan-400">DOJO</span></span>
-        </div>
-      </nav>
-
-      <main className="relative z-10 px-8 py-8 max-w-6xl mx-auto flex flex-col gap-6">
+      <main className="relative z-10 px-8 pt-24 pb-8 max-w-6xl mx-auto flex flex-col gap-6">
         
         {/* ==========================================
             SECTION 1: IDENTITY & LEVEL HERO
