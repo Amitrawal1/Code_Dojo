@@ -18,6 +18,10 @@ export default function Dashboard() {
       {/* Navbar */}
       <nav className="relative z-10 flex items-center justify-between px-8 py-4 border-b border-gray-800/50">
         <div className="flex items-center gap-4">
+          <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
+            <span>←</span> Landing Page
+          </button>
+          <div className="h-5 w-px bg-gray-700"></div>
           <button onClick={() => navigate('/home')} className="text-gray-400 hover:text-white transition flex items-center gap-2 text-sm">
             <span>←</span> Home
           </button>

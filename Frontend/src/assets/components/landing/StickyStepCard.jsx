@@ -47,9 +47,15 @@ export default function StickyStepCard({ step, index, total, scrollYProgress }) 
   const c = CARD_COLORS[index % CARD_COLORS.length];
 
   return (
-    <div className="sticky top-[80px] h-[calc(100vh-100px)] flex items-center justify-center px-4">
+    <div className="sticky top-[160px] h-[calc(100vh-200px)] flex items-center justify-center px-4">
+      <div
+        className="absolute inset-x-8 top-10 h-[70%] rounded-[40px] blur-3xl opacity-60 pointer-events-none"
+        style={{
+          background: `radial-gradient(circle at 50% 40%, ${c.accent}55 0%, transparent 70%)`,
+        }}
+      />
       <motion.div 
-        className="w-full max-w-[1200px] rounded-[28px] p-8 md:p-16 relative overflow-hidden shadow-2xl border"
+        className="w-full max-w-[1600px] rounded-[28px] p-8 md:p-20 lg:p-24 relative overflow-hidden border shadow-[0_30px_90px_rgba(0,0,0,0.55),0_0_0_1px_rgba(255,255,255,0.04)_inset]"
         style={{
           scale,
           background: c.bg,
@@ -57,7 +63,7 @@ export default function StickyStepCard({ step, index, total, scrollYProgress }) 
         }}
       >
         {/* Ghost Number */}
-        <div className="absolute top-[-20px] right-10 font-black text-[12rem] md:text-[18rem] opacity-10 pointer-events-none select-none z-0" style={{ color: c.accent }}>
+        <div className="absolute top-[-20px] right-10 font-black text-[12rem] md:text-[20rem] lg:text-[24rem] opacity-10 pointer-events-none select-none z-0" style={{ color: c.accent }}>
           {step.n}
         </div>
 
@@ -66,25 +72,25 @@ export default function StickyStepCard({ step, index, total, scrollYProgress }) 
             Step {step.n}
           </span>
 
-          <h3 className="text-4xl md:text-6xl font-black text-white mb-6 leading-tight tracking-tighter">
+          <h3 className="text-5xl md:text-7xl lg:text-8xl font-black text-white mb-8 leading-tight tracking-tighter">
             {step.title}
           </h3>
 
-          <p className="text-white/50 text-lg md:text-xl leading-relaxed max-w-xl mb-10">
+          <p className="text-white/50 text-lg md:text-2xl lg:text-3xl leading-relaxed max-w-3xl mb-10">
             {step.longDesc}
           </p>
 
           <div className="flex flex-wrap gap-3">
             {step.chips.map(chip => (
-              <span key={chip} className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-sm font-medium">
+              <span key={chip} className="px-4 py-2 rounded-full bg-white/5 border border-white/10 text-white/60 text-sm md:text-base font-medium">
                 {chip}
               </span>
             ))}
           </div>
         </div>
 
-        <div className="absolute bottom-12 right-12 w-24 h-24 rounded-3xl flex items-center justify-center border" style={{ backgroundColor: `${c.accent}18`, borderColor: `${c.accent}33` }}>
-          <step.icon size={48} style={{ color: c.accent }} />
+        <div className="absolute bottom-12 right-12 w-32 h-32 md:w-40 md:h-40 rounded-3xl flex items-center justify-center border" style={{ backgroundColor: `${c.accent}18`, borderColor: `${c.accent}33` }}>
+          <step.icon size={64} style={{ color: c.accent }} className="md:w-24 md:h-24" />
         </div>
       </motion.div>
     </div>
