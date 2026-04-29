@@ -18,6 +18,21 @@ const LoginPage = () => {
     navigate('/home');
   };
 
+  const handleAuth0Login = () => {
+    loginWithRedirect({
+      authorizationParams: {
+        connection: "google-oauth2",
+      },
+    });
+  };
+
+  if (isLoading)
+    return (
+      <div className="min-h-screen bg-[#0d1117] flex items-center justify-center text-white">
+        Loading...
+      </div>
+    );
+
   return (
     <PageWrapper>
       <button 
