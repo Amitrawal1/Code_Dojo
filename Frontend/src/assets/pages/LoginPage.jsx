@@ -37,6 +37,12 @@ const LoginPage = () => {
 
   return (
     <PageWrapper>
+      <button 
+        onClick={() => navigate('/')} 
+        style={{ position: 'absolute', top: '2rem', left: '2rem', color: '#a78bfa', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+      >
+        <span>←</span> Back to Landing
+      </button>
       <StyledWrapper>
         <div className="form-container">
           <p className="title">{isLogin ? 'Login' : 'Sign Up'}</p>

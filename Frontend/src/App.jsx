@@ -32,7 +32,7 @@ function App() {
         {/* Public Routes - Redirect to Home if already logged in */}
         <Route 
           path="/" 
-          element={isLoggedIn ? <Navigate to="/home" replace /> : <LandingPage />} 
+          element={isLoggedIn ? <Navigate to="/home" replace /> : <LandingPage />}
         />
         <Route 
           path="/login" 

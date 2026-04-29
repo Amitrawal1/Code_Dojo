@@ -1,241 +1,429 @@
 import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from 'react-resizable-panels';
-import CodeEditor from '../components/editor/CodeEditor';
-import AiChat from '../components/chat/AiChat';
+import Editor from '@monaco-editor/react';
 import { problems } from '../../../../Backend/data/dsaProblems.js';
 import { useProgress } from '../../context/ProgressContext';
 
 const API_BASE = 'http://localhost:5001/api/ai';
 
+const diffColor = (d) =>
+  d === 'easy' ? 'bg-green-500/20 text-green-400 border-green-500/40' :
+  d === 'medium' ? 'bg-yellow-500/20 text-yellow-400 border-yellow-500/40' :
+  'bg-red-500/20 text-red-400 border-red-500/40';
+
 export default function Workspace() {
-    const { id } = useParams();
-    const navigate = useNavigate();
-    const baseProblem = problems[id];
-    const { submitProblemAction } = useProgress();
-    const [language, setLanguage] = useState('python');
-    const [problem, setProblem] = useState(baseProblem);
-    const [isLoadingLeetcode, setIsLoadingLeetcode] = useState(false);
-    const [isHtmlDesc, setIsHtmlDesc] = useState(false);
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const baseProblem = problems[id];
+  const { submitProblemAction } = useProgress();
+  const [language, setLanguage] = useState('python');
+  const [problem, setProblem] = useState(baseProblem);
+  const [isLoadingLeetcode, setIsLoadingLeetcode] = useState(false);
+  const [isHtmlDesc, setIsHtmlDesc] = useState(false);
+  const [code, setCode] = useState('');
 
-    // Fetch LeetCode API data
-    React.useEffect(() => {
-        if (!baseProblem) return;
-        
-        const fetchLeetcodeData = async () => {
-            setIsLoadingLeetcode(true);
-            try {
-                // Convert "Two Sum" -> "two-sum"
-                const slug = baseProblem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-                const res = await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${slug}`);
-                if (!res.ok) throw new Error('Network response was not ok');
-                const data = await res.json();
-                
-                if (data && data.question) {
-                    setProblem(prev => ({
-                        ...prev,
-                        description: data.question
-                    }));
-                    setIsHtmlDesc(true);
-                }
-            } catch (err) {
-                console.warn("Failed to fetch from LeetCode API, using fallback local data.", err);
-                setIsHtmlDesc(false);
-            } finally {
-                setIsLoadingLeetcode(false);
-            }
-        };
+  // Fetch LeetCode API data
+  React.useEffect(() => {
+      if (!baseProblem) return;
+      
+      const fetchLeetcodeData = async () => {
+          setIsLoadingLeetcode(true);
+          try {
+              // Convert "Two Sum" -> "two-sum"
+              const slug = baseProblem.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+              const res = await fetch(`https://alfa-leetcode-api.onrender.com/select?titleSlug=${slug}`);
+              if (!res.ok) throw new Error('Network response was not ok');
+              const data = await res.json();
+              
+              if (data && data.question) {
+                  setProblem(prev => ({
+                      ...prev,
+                      description: data.question
+                  }));
+                  setIsHtmlDesc(true);
+              }
+          } catch (err) {
+              console.warn("Failed to fetch from LeetCode API, using fallback local data.", err);
+              setIsHtmlDesc(false);
+          } finally {
+              setIsLoadingLeetcode(false);
+          }
+      };
 
-        fetchLeetcodeData();
-    }, [baseProblem]);
+      fetchLeetcodeData();
+  }, [baseProblem]);
 
-    // Submission gatekeeper state
-    const [submissionState, setSubmissionState] = useState('idle'); // idle | questioning | approved | rejected
-    const [mcqData, setMcqData] = useState(null);
+  // Gatekeeper state
+  const [phase, setPhase] = useState('idle'); // idle | questioning | approved | rejected
+  const [mcqData, setMcqData] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [answered, setAnswered] = useState(false);
+  const [attempts, setAttempts] = useState(0);
+  const [resultMsg, setResultMsg] = useState(null); // { text, type }
+  const [hints] = useState(0);
+  const [consoleMsg, setConsoleMsg] = useState('Editor locked. Complete the Socratic session first.');
+  const [activeTab, setActiveTab] = useState('solution');
 
-    if (!problem) return <div className="p-8 text-white h-screen bg-gray-900 flex items-center justify-center">Problem not found!</div>;
+  // Progress bar % based on phase
+  const phasePercent = phase === 'idle' ? 0 : phase === 'questioning' ? 50 : phase === 'approved' ? 100 : 0;
 
-    // Called when user clicks Submit in CodeEditor
-    const handleSubmit = async (code) => {
-        setSubmissionState('questioning');
-        setMcqData(null); // Reset previous MCQ
+  if (!problem) return (
+    <div className="h-screen w-screen bg-[#0d1117] text-white flex items-center justify-center font-mono">
+      Problem not found.
+    </div>
+  );
 
-        try {
-            const res = await fetch(`${API_BASE}/ask-question`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    problemTitle: problem.title,
-                    problemDescription: problem.description,
-                    userCode: code,
-                    language
-                })
-            });
-            const data = await res.json();
-            if (data.question && data.options) {
-                setMcqData(data);
-            } else {
-                // Fallback MCQ if AI fails
-                setMcqData({
-                    question: 'What is the time complexity of your solution?',
-                    options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
-                    correctAnswerIndex: 2,
-                    explanation: 'Most basic array traversals run in O(n) time.'
-                });
-            }
-        } catch (error) {
-            console.error('Failed to get MCQ:', error);
-            setMcqData({
-                question: 'What is the time complexity of your solution?',
-                options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
-                correctAnswerIndex: 2,
-                explanation: 'Most basic array traversals run in O(n) time.'
-            });
-        }
-    };
+  // Init starter code when language changes
+  const starterCode = problem.starterCode?.[language] || `// Write your ${language} solution here\n`;
 
-    // Called when AI approves the answer
-    const handleApproved = async () => {
-        setSubmissionState('approved');
-        
-        // Calculate dynamic logic score and XP based on difficulty
-        const logicScore = 85 + Math.floor(Math.random() * 15); // Random high score 85-99
-        let xpGained = 100;
-        if (problem.difficulty === 'Medium') xpGained = 250;
-        if (problem.difficulty === 'Hard') xpGained = 500;
+  // Called when AI approves the answer
+  const handleApproved = async () => {
+      setPhase('approved');
+      
+      // Calculate dynamic logic score and XP based on difficulty
+      const logicScore = 85 + Math.floor(Math.random() * 15); // Random high score 85-99
+      let xpGained = 100;
+      if (problem.difficulty === 'Medium') xpGained = 250;
+      if (problem.difficulty === 'Hard') xpGained = 500;
 
-        await submitProblemAction(parseInt(id), problem.title, problem.difficulty, logicScore, xpGained);
+      await submitProblemAction(parseInt(id), problem.title, problem.difficulty, logicScore, xpGained);
 
-        // Also save to localStorage as a fallback for some components
-        const saved = JSON.parse(localStorage.getItem('solved_problems') || '[]');
-        if (!saved.find(s => s.problemIdx === parseInt(id))) {
-            saved.push({
-                problemIdx: parseInt(id),
-                date: new Date().toISOString().split('T')[0],
-                attempts: 1,
-                logicScore
-            });
-            localStorage.setItem('solved_problems', JSON.stringify(saved));
-        }
-    };
+      // Also save to localStorage as a fallback for some components
+      const saved = JSON.parse(localStorage.getItem('solved_problems') || '[]');
+      if (!saved.find(s => s.problemIdx === parseInt(id))) {
+          saved.push({
+              problemIdx: parseInt(id),
+              date: new Date().toISOString().split('T')[0],
+              attempts: 1,
+              logicScore
+          });
+          localStorage.setItem('solved_problems', JSON.stringify(saved));
+      }
+  };
 
-    // Called when user exhausts all attempts
-    const handleRejected = () => {
-        setSubmissionState('rejected');
-        // Allow retry after 3 seconds
-        setTimeout(() => setSubmissionState('idle'), 5000);
-    };
+  const handleSubmit = async () => {
+    setPhase('questioning');
+    setMcqData(null);
+    setSelectedOption(null);
+    setAnswered(false);
+    setResultMsg(null);
+    setConsoleMsg('Socratic Gatekeeper activated. Answer the question to unlock submission.');
 
-    return (
-        <div className="h-screen w-screen flex flex-col bg-gray-900 text-white overflow-hidden">
-            {/* Topbar */}
-            <header className="h-14 bg-gray-800 border-b border-gray-700 flex items-center px-6 justify-between shrink-0">
-                <div className="flex items-center gap-4">
-                    <button onClick={() => navigate('/')} className="text-gray-400 hover:text-white transition flex items-center gap-2">
-                        <span>←</span> Dashboard
-                    </button>
-                    <div className="h-6 w-px bg-gray-700"></div>
-                    <h1 className="text-lg font-bold text-gray-100">{problem.title}</h1>
-                </div>
-                <div className="flex items-center gap-3">
-                    <select 
-                        value={language}
-                        onChange={(e) => setLanguage(e.target.value)}
-                        className="bg-gray-700 text-sm rounded px-3 py-1.5 border border-gray-600 outline-none text-white cursor-pointer"
-                    >
-                        <option value="python">Python 3</option>
-                        <option value="java">Java</option>
-                        <option value="cpp">C++</option>
-                    </select>
-                </div>
-            </header>
+    try {
+      const res = await fetch(`${API_BASE}/ask-question`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          problemTitle: problem.title,
+          problemDescription: problem.description,
+          userCode: code || starterCode,
+          language,
+        }),
+      });
+      const data = await res.json();
+      if (data.question && data.options) {
+        setMcqData(data);
+      } else {
+        setMcqData({
+          question: 'What is the time complexity of your solution?',
+          options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
+          correctAnswerIndex: 2,
+          explanation: 'Most basic array traversals run in O(n) time.',
+        });
+      }
+    } catch {
+      setMcqData({
+        question: 'What is the time complexity of your solution?',
+        options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)', 'O(n²)'],
+        correctAnswerIndex: 2,
+        explanation: 'Most basic array traversals run in O(n) time.',
+      });
+    }
+  };
 
-            {/* Split Layout */}
-            <main className="flex-grow flex p-2 h-[calc(100vh-56px)]">
-                <PanelGroup direction="horizontal" className="h-full w-full">
-                    
-                    {/* Panel 1: Problem Description */}
-                    <Panel defaultSize={30} minSize={20} className="p-2 h-full">
-                        <div className="h-full bg-gray-800 rounded-lg border border-gray-700 overflow-y-auto p-6 custom-scrollbar shadow-lg">
-                            <div className="flex items-center gap-3 mb-6 border-b border-gray-700 pb-4">
-                                <h2 className="text-3xl font-bold text-white">{problem.title}</h2>
-                                <span className={`px-2.5 py-1 rounded-md text-xs font-bold uppercase tracking-wider ${
-                                    problem.difficulty === 'easy' ? 'bg-green-500/20 text-green-400' :
-                                    problem.difficulty === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-                                    'bg-red-500/20 text-red-400'
-                                }`}>
-                                    {problem.difficulty}
-                                </span>
-                            </div>
+  const handleOptionSelect = (idx) => {
+    if (answered || phase !== 'questioning') return;
+    setSelectedOption(idx);
+    setAnswered(true);
+    const att = attempts + 1;
+    setAttempts(att);
+    const correct = idx === mcqData.correctAnswerIndex;
 
-                            <div className="prose prose-invert max-w-none">
-                                {isLoadingLeetcode ? (
-                                    <div className="text-cyan-400 animate-pulse text-sm font-bold">Connecting to LeetCode API...</div>
-                                ) : isHtmlDesc ? (
-                                    <div 
-                                        className="text-gray-300 leading-relaxed text-[15px] mb-8 leetcode-content"
-                                        dangerouslySetInnerHTML={{ __html: problem.description }}
-                                    />
-                                ) : (
-                                    <p className="text-gray-300 leading-relaxed text-lg mb-8">
-                                        {problem.description}
-                                    </p>
-                                )}
+    if (correct) {
+      setResultMsg({ text: `✓ Correct! ${mcqData.explanation}`, type: 'success' });
+      setPhase('approved');
+      setConsoleMsg('✓ Logic verified. Submission accepted!');
 
-                                <div className="mt-8">
-                                    <h3 className="text-xl font-semibold text-white mb-4 flex items-center gap-2">
-                                        <span className="text-purple-400">#</span> Test Cases
-                                    </h3>
-                                    {problem.testCases?.map((tc, index) => (
-                                        <div key={index} className="bg-gray-900/50 p-5 rounded-lg mb-4 border border-gray-700 font-mono text-sm shadow-inner">
-                                            <div className="mb-3">
-                                                <div className="text-gray-500 font-bold mb-1 text-xs uppercase tracking-wider">Input</div> 
-                                                <div className="text-gray-300 bg-gray-800 p-2 rounded border border-gray-700">{tc.input}</div>
-                                            </div>
-                                            <div>
-                                                <div className="text-gray-500 font-bold mb-1 text-xs uppercase tracking-wider">Output</div> 
-                                                <div className="text-green-400 bg-gray-800 p-2 rounded border border-gray-700">{tc.output}</div>
-                                            </div>
-                                        </div>
-                                    ))}
-                                </div>
-                            </div>
-                        </div>
-                    </Panel>
+      // Save to localStorage
+      const now = new Date().toISOString();
+      const today = now.split('T')[0];
+      const solved = JSON.parse(localStorage.getItem('solved_problems') || '[]');
+      if (!solved.find(s => s.problemIdx === parseInt(id))) {
+        solved.push({ problemIdx: parseInt(id), date: today, solvedAt: now, attempts: att, logicScore: 95 });
+        localStorage.setItem('solved_problems', JSON.stringify(solved));
+      }
+      const calData = JSON.parse(localStorage.getItem('codedojo_solved') || '[]');
+      if (!calData.find(s => s.problemIdx === parseInt(id) && s.solvedAt?.startsWith(today))) {
+        calData.push({ problemIdx: parseInt(id), solvedAt: now });
+        localStorage.setItem('codedojo_solved', JSON.stringify(calData));
+      }
 
-                    {/* Resizer 1 */}
-                    <PanelResizeHandle className="w-2 flex items-center justify-center hover:bg-purple-500/50 transition-colors cursor-col-resize group rounded">
-                        <div className="h-8 w-1 bg-gray-600 rounded-full group-hover:bg-white transition-colors"></div>
-                    </PanelResizeHandle>
+      // Also trigger global progress update
+      handleApproved();
+    } else if (att >= 2) {
+      setResultMsg({ text: `✗ Wrong. Correct answer: "${mcqData.options[mcqData.correctAnswerIndex]}"\n${mcqData.explanation}`, type: 'error' });
+      setPhase('rejected');
+      setConsoleMsg('✗ Failed Socratic check. Review your logic and try again.');
+      setTimeout(() => { setPhase('idle'); setAnswered(false); setSelectedOption(null); setAttempts(0); setMcqData(null); setResultMsg(null); setConsoleMsg('Editor locked. Complete the Socratic session first.'); }, 5000);
+    } else {
+      setResultMsg({ text: `✗ Not quite. Think again. (${att}/2 attempts)`, type: 'warning' });
+      setTimeout(() => { setSelectedOption(null); setAnswered(false); setResultMsg(null); }, 1500);
+    }
+  };
 
-                    {/* Panel 2: Code Editor */}
-                    <Panel defaultSize={45} minSize={30} className="p-2 h-full">
-                        <CodeEditor 
-                            starterCode={problem.starterCode?.[language]} 
-                            language={language}
-                            onSubmit={handleSubmit}
-                            submissionState={submissionState}
-                        />
-                    </Panel>
+  const isLocked = phase === 'approved';
+  const isQuestioning = phase === 'questioning';
 
-                    {/* Resizer 2 */}
-                    <PanelResizeHandle className="w-2 flex items-center justify-center hover:bg-purple-500/50 transition-colors cursor-col-resize group rounded">
-                        <div className="h-8 w-1 bg-gray-600 rounded-full group-hover:bg-white transition-colors"></div>
-                    </PanelResizeHandle>
+  return (
+    <div className="h-screen w-screen flex bg-[#0d1117] text-white font-mono overflow-hidden">
 
-                    {/* Panel 3: AI Chat */}
-                    <Panel defaultSize={25} minSize={15} className="p-2 h-full">
-                        <AiChat 
-                            mcqData={mcqData}
-                            submissionState={submissionState}
-                            onApproved={handleApproved}
-                            onRejected={handleRejected}
-                            problemTitle={problem.title}
-                        />
-                    </Panel>
+      {/* ══════════ LEFT PANEL ══════════ */}
+      <div className="w-[42%] min-w-[340px] flex flex-col border-r border-[#21262d] overflow-hidden">
 
-                </PanelGroup>
-            </main>
+        {/* Problem Header */}
+        <div className="px-5 pt-4 pb-3 border-b border-[#21262d] shrink-0">
+          <div className="flex items-center gap-2 mb-1">
+            <button onClick={() => navigate('/dojomap')} className="text-[#39d353] text-[10px] hover:underline">← Arena Map</button>
+          </div>
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-lg font-bold text-white">{problem.title}</h1>
+            <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${diffColor(problem.difficulty)}`}>
+              {problem.difficulty}
+            </span>
+          </div>
+          {isLoadingLeetcode ? (
+            <div className="text-cyan-400 animate-pulse text-xs font-bold mt-2">Connecting to LeetCode API...</div>
+          ) : isHtmlDesc ? (
+            <div className="text-gray-400 text-xs mt-2 leading-relaxed leetcode-content" dangerouslySetInnerHTML={{ __html: problem.description }} />
+          ) : (
+            <p className="text-gray-400 text-xs mt-2 leading-relaxed line-clamp-3">{problem.description}</p>
+          )}
+          {/* Test cases inline */}
+          {problem.testCases?.slice(0, 2).map((tc, i) => (
+            <div key={i} className="text-[10px] text-gray-500 mt-1.5 font-mono">
+              <span className="text-gray-600">In:</span> {tc.input} <span className="text-gray-600">→ Out:</span> <span className="text-gray-300">{tc.output}</span>
+            </div>
+          ))}
+          {/* Tags */}
+          <div className="flex gap-1.5 mt-2 flex-wrap">
+            {problem.tracks?.map(t => (
+              <span key={t} className="px-2 py-0.5 bg-[#1c2330] border border-[#30363d] rounded text-[9px] text-gray-400 uppercase tracking-wider">{t}</span>
+            ))}
+            <span className="px-2 py-0.5 bg-[#1c2330] border border-[#30363d] rounded text-[9px] text-gray-400 uppercase tracking-wider">Phase 1</span>
+          </div>
         </div>
-    );
+
+        {/* Gatekeeper Section */}
+        <div className="flex-1 flex flex-col overflow-hidden">
+          {/* Gatekeeper Header */}
+          <div className={`px-5 py-2 flex items-center justify-between border-b border-[#21262d] shrink-0
+            ${isQuestioning ? 'bg-[#1a1f0a]' : phase === 'approved' ? 'bg-[#0a1f0a]' : 'bg-transparent'}`}>
+            <div className="flex items-center gap-2">
+              <span className={`w-2 h-2 rounded-full ${isQuestioning ? 'bg-[#39d353] animate-pulse' : phase === 'approved' ? 'bg-[#39d353]' : 'bg-[#21262d]'}`} />
+              <span className="text-[11px] font-bold text-[#39d353] uppercase tracking-[0.2em]">Socratic Gatekeeper</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className="text-[9px] text-gray-600">Elenchus Protocol · Phase 1</span>
+              {/* Progress bar */}
+              <div className="w-20 h-1 bg-[#21262d] rounded-full overflow-hidden">
+                <div className="h-full bg-[#39d353] transition-all duration-700" style={{ width: `${phasePercent}%` }} />
+              </div>
+              <span className="text-[9px] text-[#39d353]">{phasePercent}%</span>
+            </div>
+          </div>
+
+          {/* Gatekeeper Body */}
+          <div className="flex-1 overflow-y-auto px-5 py-3 custom-scrollbar">
+            <div className="text-[10px] text-[#39d353] font-bold uppercase tracking-[0.15em] mb-2">AI Gatekeeper</div>
+
+            {/* Idle state */}
+            {phase === 'idle' && (
+              <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-sm text-gray-300 leading-relaxed">
+                **Dojo Rule #1:** Think before you type. For **"{problem.title}"** — what algorithm do you have in mind, and why?
+              </div>
+            )}
+
+            {/* Questioning state — MCQ */}
+            {isQuestioning && !mcqData && (
+              <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-sm text-gray-400 animate-pulse">
+                🤔 Generating your challenge question...
+              </div>
+            )}
+
+            {isQuestioning && mcqData && (
+              <div className="space-y-2">
+                <div className="bg-[#161b22] border border-[#30363d] rounded-lg p-4 text-sm text-gray-200 leading-relaxed mb-3">
+                  {mcqData.question}
+                </div>
+                {mcqData.options.map((opt, i) => {
+                  const isSelected = selectedOption === i;
+                  const isCorrect = i === mcqData.correctAnswerIndex;
+                  return (
+                    <button
+                      key={i}
+                      onClick={() => handleOptionSelect(i)}
+                      disabled={answered}
+                      className={`w-full text-left px-3 py-2 rounded-lg border text-xs transition-all duration-150
+                        ${answered && isCorrect ? 'bg-green-900/40 border-green-500/60 text-green-300' :
+                          answered && isSelected && !isCorrect ? 'bg-red-900/40 border-red-500/60 text-red-300' :
+                          isSelected ? 'bg-[#1c2330] border-[#39d353] text-white' :
+                          'bg-[#161b22] border-[#30363d] text-gray-300 hover:border-[#39d353]/50 hover:bg-[#1c2330]'
+                        }`}
+                    >
+                      <span className="text-[#39d353] font-bold mr-2">{String.fromCharCode(65 + i)}.</span>{opt}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Result message */}
+            {resultMsg && (
+              <div className={`mt-3 p-3 rounded-lg text-xs whitespace-pre-wrap border
+                ${resultMsg.type === 'success' ? 'bg-green-900/30 border-green-500/40 text-green-300' :
+                  resultMsg.type === 'error' ? 'bg-red-900/30 border-red-500/40 text-red-300' :
+                  'bg-yellow-900/30 border-yellow-500/40 text-yellow-300'}`}
+              >
+                {resultMsg.text}
+              </div>
+            )}
+
+            {/* Approved banner */}
+            {phase === 'approved' && (
+              <div className="mt-3 p-3 rounded-lg bg-green-900/30 border border-green-500/40 text-green-300 text-xs font-bold text-center">
+                ✓ Logic Verified — Submission Accepted!
+              </div>
+            )}
+          </div>
+
+          {/* Chat Input Area */}
+          <div className="shrink-0 border-t border-[#21262d] p-3">
+            <div className="flex items-center gap-2">
+              <input
+                className="flex-1 bg-[#161b22] border border-[#30363d] rounded-lg px-3 py-2 text-xs text-gray-300 placeholder-gray-600 outline-none focus:border-[#39d353]/50"
+                placeholder="Explain your logic..."
+              />
+              <button className="w-8 h-8 rounded-lg bg-[#39d353]/10 border border-[#39d353]/30 flex items-center justify-center text-[#39d353] text-xs hover:bg-[#39d353]/20 transition">
+                ↗
+              </button>
+            </div>
+            <div className="mt-1.5 text-[9px] text-gray-600">
+              ◎ Need a hint? ({hints}/2 used)
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* ══════════ RIGHT PANEL — EDITOR ══════════ */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+
+        {/* Editor Topbar */}
+        <div className="h-10 bg-[#0d1117] border-b border-[#21262d] flex items-center justify-between px-4 shrink-0">
+          {/* Tabs */}
+          <div className="flex items-center gap-0">
+            <button
+              onClick={() => setActiveTab('solution')}
+              className={`px-4 h-10 text-xs font-medium border-b-2 transition-colors ${activeTab === 'solution' ? 'border-white text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+            >
+              Solution.{language === 'javascript' ? 'js' : language === 'python' ? 'py' : language === 'java' ? 'java' : 'cpp'}
+            </button>
+            <button
+              onClick={() => setActiveTab('tracer')}
+              className={`px-4 h-10 text-xs font-medium border-b-2 transition-colors ${activeTab === 'tracer' ? 'border-white text-white' : 'border-transparent text-gray-500 hover:text-gray-300'}`}
+            >
+              Tracer.Canvas
+            </button>
+          </div>
+
+          {/* Right controls */}
+          <div className="flex items-center gap-3">
+            <select
+              value={language}
+              onChange={(e) => setLanguage(e.target.value)}
+              className="bg-transparent text-[10px] text-gray-400 border-none outline-none cursor-pointer"
+            >
+              <option value="javascript">Node 20</option>
+              <option value="python">Python 3</option>
+              <option value="java">Java 21</option>
+              <option value="cpp">C++ 17</option>
+            </select>
+            <div className={`flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold border
+              ${isLocked ? 'border-green-500/40 text-green-400 bg-green-500/10' : 'border-[#30363d] text-gray-500'}`}>
+              {isLocked ? '🔓 UNLOCKED' : '🔒 LOCKED'}
+            </div>
+            {/* Run button */}
+            <button
+              className="px-3 py-1 rounded text-[11px] font-medium border border-[#30363d] text-gray-400 hover:text-white hover:border-gray-500 transition-all"
+            >
+              ▶ Run
+            </button>
+
+            {/* Submit button */}
+            <button
+              onClick={handleSubmit}
+              disabled={isQuestioning || isLocked}
+              className={`px-4 py-1 rounded text-[11px] font-bold transition-all
+                ${isLocked
+                  ? 'bg-green-600/20 text-green-400 border border-green-500/30 cursor-not-allowed'
+                  : isQuestioning
+                  ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-500/30 cursor-wait'
+                  : 'bg-[#238636] hover:bg-[#2ea043] text-white border border-transparent'}`}
+            >
+              {isLocked ? '✓ Submitted' : isQuestioning ? 'Checking...' : 'Submit'}
+            </button>
+          </div>
+        </div>
+
+        {/* Monaco Editor */}
+        <div className="flex-1 overflow-hidden">
+          {activeTab === 'solution' ? (
+            <Editor
+              height="100%"
+              language={language}
+              theme="vs-dark"
+              value={code || starterCode}
+              onChange={(v) => setCode(v || '')}
+              options={{
+                minimap: { enabled: false },
+                fontSize: 13,
+                fontFamily: "'JetBrains Mono', 'Fira Code', monospace",
+                padding: { top: 12 },
+                scrollBeyondLastLine: false,
+                renderLineHighlight: 'gutter',
+                cursorBlinking: 'smooth',
+                readOnly: isLocked,
+              }}
+            />
+          ) : (
+            <div className="h-full flex items-center justify-center text-gray-600 text-sm">
+              Tracer canvas coming soon...
+            </div>
+          )}
+        </div>
+
+        {/* Console Panel */}
+        <div className="shrink-0 border-t border-[#21262d]">
+          <div className="flex items-center justify-between px-4 py-1.5 bg-[#161b22] border-b border-[#21262d]">
+            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">Console</span>
+            <button className="text-gray-600 text-xs hover:text-gray-400">∨</button>
+          </div>
+          <div className="px-4 py-2 bg-[#0d1117] min-h-[36px]">
+            <span className={`text-[11px] font-mono ${phase === 'approved' ? 'text-green-400' : phase === 'rejected' ? 'text-red-400' : 'text-gray-600'}`}>
+              {consoleMsg}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
 }
