@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth0 } from "@auth0/auth0-react";
-import { LayoutDashboard, FileText, LogOut, Settings, User } from "lucide-react";
+import { ChevronDown, LayoutDashboard, FileText, LogOut, Settings, User, AtSign, KeyRound, ImagePlus, PencilLine } from "lucide-react";
 
 function GeminiIcon({ className }) {
   return (
@@ -19,8 +19,8 @@ function GeminiIcon({ className }) {
 }
 
 const SAMPLE_PROFILE_DATA = {
-  name: "Eugene An",
-  email: "eugene@kokonutui.com",
+  name: "user@dojo.com",
+  email: "itsharmankit@gmail.com",
   avatar:
     "https://ferf1mheo22r9ira.public.blob.vercel-storage.com/profile-mjss82WnWBRO86MHHGxvJ2TVZuyrDv.jpeg",
   subscription: "PRO",
@@ -31,11 +31,13 @@ export default function ProfileDropdown({ data = SAMPLE_PROFILE_DATA, className 
   const navigate = useNavigate();
   const { logout, isAuthenticated } = useAuth0();
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileExpanded, setIsProfileExpanded] = useState(false);
   const ref = useRef(null);
 
   const userStr = localStorage.getItem("codedojo_user");
   const user = userStr ? JSON.parse(userStr) : null;
   const profile = user ? { ...SAMPLE_PROFILE_DATA, ...user } : data;
+  const [imageUrl, setImageUrl] = useState(profile.avatar || "");
 
   useEffect(() => {
     function onDoc(e) {
@@ -57,8 +59,21 @@ export default function ProfileDropdown({ data = SAMPLE_PROFILE_DATA, className 
     }
   }
 
+  function handleImageSave() {
+    if (!user || !imageUrl.trim()) return;
+    const updatedUser = { ...user, avatar: imageUrl.trim() };
+    localStorage.setItem("codedojo_user", JSON.stringify(updatedUser));
+  }
+
+  const profileItems = [
+    { label: "Your Name", value: profile.email, icon: <User className="h-4 w-4" /> },
+    { label: "Change Name", icon: <PencilLine className="h-4 w-4" />, onClick: () => { setIsOpen(false); navigate('/profile/edit-name'); } },
+    { label: "Password Change", icon: <KeyRound className="h-4 w-4" />, onClick: () => { setIsOpen(false); navigate('/profile/edit-password'); } },
+    { label: "Email Change", icon: <AtSign className="h-4 w-4" />, onClick: () => { setIsOpen(false); navigate('/profile/edit-email'); } },
+    { label: "Add Your Photos", icon: <ImagePlus className="h-4 w-4" /> },
+  ];
+
   const menuItems = [
-    { label: "Profile", href: "/home", icon: <User className="h-4 w-4" /> },
     { label: "Dashboard", href: "/dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
     { label: "Model", href: "#", value: profile.model, icon: <GeminiIcon className="h-4 w-4" /> },
     { label: "Settings", href: "#", icon: <Settings className="h-4 w-4" /> },
@@ -82,7 +97,7 @@ export default function ProfileDropdown({ data = SAMPLE_PROFILE_DATA, className 
       <button
         type="button"
         onClick={() => setIsOpen((s) => !s)}
-        className="flex items-center gap-4 rounded-2xl border border-zinc-200/60 bg-white p-3 transition-all duration-200 hover:border-zinc-300 hover:bg-zinc-50/80 hover:shadow-sm focus:outline-none dark:border-zinc-800/60 dark:bg-zinc-900 dark:hover:border-zinc-700 dark:hover:bg-zinc-800/40"
+        className="flex items-center gap-4 rounded-2xl border border-zinc-300 bg-white p-3 shadow-sm transition-all duration-200 hover:border-zinc-400 hover:bg-zinc-50 focus:outline-none dark:border-zinc-700 dark:bg-zinc-900 dark:hover:border-zinc-600 dark:hover:bg-zinc-800"
       >
         <div className="flex-1 text-left hidden md:block">
           <div className="font-medium text-sm text-zinc-900 leading-tight tracking-tight dark:text-zinc-100">{profile.name}</div>
@@ -95,7 +110,7 @@ export default function ProfileDropdown({ data = SAMPLE_PROFILE_DATA, className 
                 alt={profile.name}
                 className="h-full w-full rounded-full object-cover"
                 height={36}
-                src={profile.avatar}
+                src={imageUrl || profile.avatar}
                 width={36}
               />
             </div>
@@ -110,7 +125,63 @@ export default function ProfileDropdown({ data = SAMPLE_PROFILE_DATA, className 
       </div>
 
       {isOpen && (
-        <div className="absolute right-0 z-50 mt-2 w-64 origin-top-right rounded-2xl border border-zinc-200/60 bg-white/95 p-2 shadow-xl shadow-zinc-900/5 backdrop-blur-sm dark:border-zinc-800/60 dark:bg-zinc-900/95">
+        <div className="absolute right-0 z-50 mt-2 w-72 origin-top-right rounded-2xl border border-zinc-300 bg-white p-2 shadow-xl shadow-zinc-900/10 dark:border-zinc-700 dark:bg-zinc-900">
+          <button
+            type="button"
+            onClick={() => setIsProfileExpanded((v) => !v)}
+            className="group mb-1 flex w-full items-center rounded-xl border border-transparent p-3 transition-all duration-200 hover:border-zinc-200/50 hover:bg-zinc-100/80 hover:shadow-sm dark:hover:border-zinc-700/50 dark:hover:bg-zinc-800/60"
+          >
+            <div className="flex flex-1 items-center gap-2">
+              <User className="h-4 w-4 text-zinc-500 dark:text-zinc-400" />
+              <span className="font-medium text-sm text-zinc-900 dark:text-zinc-100">Profile</span>
+            </div>
+            <ChevronDown className={`h-4 w-4 text-zinc-500 transition-transform ${isProfileExpanded ? "rotate-180" : ""}`} />
+          </button>
+
+          {isProfileExpanded && (
+            <div className="mb-2 space-y-1 rounded-xl border border-zinc-200/70 bg-zinc-50/80 p-2 dark:border-zinc-800 dark:bg-zinc-800/40">
+              {profileItems.map((item) => (
+                <button
+                  key={item.label}
+                  type="button"
+                  onClick={() => {
+                    item.onClick && item.onClick();
+                    setIsOpen(false);
+                  }}
+                  className="group flex w-full items-center rounded-lg border border-transparent p-2.5 text-left transition-all duration-200 hover:border-zinc-200 hover:bg-white dark:hover:border-zinc-700 dark:hover:bg-zinc-800"
+                >
+                  <div className="flex flex-1 items-center gap-2">
+                    <span className="text-zinc-500 dark:text-zinc-400">{item.icon}</span>
+                    <span className="whitespace-nowrap font-medium text-sm text-zinc-900 dark:text-zinc-100">{item.label}</span>
+                  </div>
+                  {item.value && (
+                    <span className="ml-auto rounded-md border border-blue-500/10 bg-blue-50 px-2 py-1 font-medium text-xs text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">
+                      {item.value}
+                    </span>
+                  )}
+                </button>
+              ))}
+
+              <div className="rounded-lg border border-zinc-200/80 bg-white p-2.5 dark:border-zinc-700 dark:bg-zinc-900">
+                <label className="mb-1 block text-xs font-medium text-zinc-600 dark:text-zinc-300">Change Image URL</label>
+                <input
+                  type="text"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Paste image URL"
+                  className="w-full rounded-md border border-zinc-300 bg-white px-2 py-1.5 text-xs text-zinc-800 outline-none focus:border-blue-500 dark:border-zinc-600 dark:bg-zinc-800 dark:text-zinc-100"
+                />
+                <button
+                  type="button"
+                  onClick={handleImageSave}
+                  className="mt-2 rounded-md bg-blue-600 px-2 py-1 text-xs font-medium text-white hover:bg-blue-500"
+                >
+                  Apply Image
+                </button>
+              </div>
+            </div>
+          )}
+
           <div className="space-y-1">
             {menuItems.map((item) => (
               <div key={item.label}>
@@ -124,7 +195,7 @@ export default function ProfileDropdown({ data = SAMPLE_PROFILE_DATA, className 
                       {item.value && <span className="rounded-md px-2 py-1 font-medium text-xs tracking-tight border border-purple-500/10 bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400">{item.value}</span>}
                     </div>
                   </a>
-                ) : (
+                ) : item.href ? (
                   <Link to={item.href} className="group flex cursor-pointer items-center rounded-xl border border-transparent p-3 transition-all duration-200 hover:border-zinc-200/50 hover:bg-zinc-100/80 hover:shadow-sm dark:hover:border-zinc-700/50 dark:hover:bg-zinc-800/60" onClick={() => setIsOpen(false)}>
                     <div className="flex flex-1 items-center gap-2">
                       {item.icon}
@@ -134,6 +205,16 @@ export default function ProfileDropdown({ data = SAMPLE_PROFILE_DATA, className 
                       {item.value && <span className={`rounded-md px-2 py-1 font-medium text-xs tracking-tight ${item.label === 'Model' ? 'border border-blue-500/10 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400' : 'border border-purple-500/10 bg-purple-50 text-purple-600 dark:bg-purple-500/10 dark:text-purple-400'}`}>{item.value}</span>}
                     </div>
                   </Link>
+                ) : (
+                  <button type="button" className="group flex w-full cursor-pointer items-center rounded-xl border border-transparent p-3 transition-all duration-200 hover:border-zinc-200/50 hover:bg-zinc-100/80 hover:shadow-sm dark:hover:border-zinc-700/50 dark:hover:bg-zinc-800/60" onClick={() => setIsOpen(false)}>
+                    <div className="flex flex-1 items-center gap-2">
+                      {item.icon}
+                      <span className="whitespace-nowrap font-medium text-sm text-zinc-900 leading-tight tracking-tight transition-colors group-hover:text-zinc-950 dark:text-zinc-100 dark:group-hover:text-zinc-50">{item.label}</span>
+                    </div>
+                    <div className="ml-auto flex-shrink-0">
+                      {item.value && <span className="rounded-md px-2 py-1 font-medium text-xs tracking-tight border border-blue-500/10 bg-blue-50 text-blue-600 dark:bg-blue-500/10 dark:text-blue-400">{item.value}</span>}
+                    </div>
+                  </button>
                 )}
               </div>
             ))}

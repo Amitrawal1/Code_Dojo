@@ -5,6 +5,9 @@ import HomePage from "./assets/pages/HomePage";
 import Dashboard from "./assets/pages/Dashboard";
 import DojoMap from "./assets/pages/DojoMap";
 import Workspace from "./assets/pages/Workspace";
+import EditNamePage from "./assets/pages/EditNamePage";
+import EditEmailPage from "./assets/pages/EditEmailPage";
+import EditPasswordPage from "./assets/pages/EditPasswordPage";
 import { useAuth0 } from "@auth0/auth0-react";
 import { ProgressProvider } from "./context/ProgressContext";
 import Navbar from "./assets/components/Navbar";
@@ -46,6 +49,9 @@ function App() {
         <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
         <Route path="/dojomap" element={<ProtectedRoute><DojoMap /></ProtectedRoute>} />
         <Route path="/problem/:id" element={<ProtectedRoute><Workspace /></ProtectedRoute>} />
+        <Route path="/profile/edit-name" element={<ProtectedRoute><EditNamePage /></ProtectedRoute>} />
+        <Route path="/profile/edit-email" element={<ProtectedRoute><EditEmailPage /></ProtectedRoute>} />
+        <Route path="/profile/edit-password" element={<ProtectedRoute><EditPasswordPage /></ProtectedRoute>} />
         
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

@@ -1,10 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CreditCard, LogOut, Settings, User, FileText } from 'lucide-react';
+import { ChevronDown, CreditCard, LogOut, Settings, User, FileText, AtSign, KeyRound, ImagePlus, PencilLine } from 'lucide-react';
 
 export default function ProfileDropdown() {
   const navigate = useNavigate();
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileExpanded, setIsProfileExpanded] = useState(false);
   const dropdownRef = useRef(null);
 
   // Read user from localStorage
@@ -17,6 +18,7 @@ export default function ProfileDropdown() {
     avatar: user?.avatar || null,
     subscription: user?.subscription || 'FREE',
   };
+  const [imageUrl, setImageUrl] = useState(data.avatar || '');
 
   const initial = data.name?.charAt(0).toUpperCase() || '?';
 
@@ -37,11 +39,24 @@ export default function ProfileDropdown() {
     navigate('/');
   };
 
+  const handleImageSave = () => {
+    if (!user || !imageUrl.trim()) return;
+    const updatedUser = { ...user, avatar: imageUrl.trim() };
+    localStorage.setItem('codedojo_user', JSON.stringify(updatedUser));
+  };
+
+  const profileItems = [
+    { label: 'Your Name', icon: <User className="w-4 h-4" />, value: data.email, onClick: () => {} },
+    { label: 'Change Name', icon: <PencilLine className="w-4 h-4" />, onClick: () => { setIsOpen(false); navigate('/profile/edit-name'); } },
+    { label: 'Password Change', icon: <KeyRound className="w-4 h-4" />, onClick: () => { setIsOpen(false); navigate('/profile/edit-password'); } },
+    { label: 'Email Change', icon: <AtSign className="w-4 h-4" />, onClick: () => { setIsOpen(false); navigate('/profile/edit-email'); } },
+    { label: 'Add Your Photos', icon: <ImagePlus className="w-4 h-4" />, onClick: () => {} },
+  ];
+
   const menuItems = [
-    { label: 'Profile',         icon: <User className="w-4 h-4" />,       onClick: () => navigate('/home') },
-    { label: 'Dashboard',       icon: <CreditCard className="w-4 h-4" />, onClick: () => navigate('/dashboard'), value: data.subscription },
-    { label: 'Settings',        icon: <Settings className="w-4 h-4" />,   onClick: () => {} },
-    { label: 'Terms & Policies',icon: <FileText className="w-4 h-4" />,   onClick: () => {} },
+    { label: 'Dashboard', icon: <CreditCard className="w-4 h-4" />, onClick: () => navigate('/dashboard'), value: data.subscription },
+    { label: 'Settings', icon: <Settings className="w-4 h-4" />, onClick: () => {} },
+    { label: 'Terms & Policies', icon: <FileText className="w-4 h-4" />, onClick: () => {} },
   ];
 
   // If not logged in, render a simple login redirect button
@@ -62,7 +77,7 @@ export default function ProfileDropdown() {
       {/* Trigger */}
       <button
         onClick={() => setIsOpen(v => !v)}
-        className="flex items-center gap-3 rounded-2xl border border-white/10 bg-white/5 px-3 py-2 backdrop-blur-sm transition-all duration-200 hover:border-white/20 hover:bg-white/10 focus:outline-none"
+        className="flex items-center gap-3 rounded-2xl border border-slate-500/60 bg-slate-900 px-3 py-2 shadow-md transition-all duration-200 hover:border-slate-400/80 hover:bg-slate-800 focus:outline-none"
         type="button"
       >
         {/* Name + Email */}
@@ -75,8 +90,8 @@ export default function ProfileDropdown() {
         <div className="relative flex-shrink-0">
           <div className="h-9 w-9 rounded-full bg-gradient-to-br from-purple-500 via-pink-500 to-orange-400 p-0.5">
             <div className="h-full w-full overflow-hidden rounded-full bg-[#0d1117] flex items-center justify-center">
-              {data.avatar ? (
-                <img alt={data.name} className="h-full w-full rounded-full object-cover" src={data.avatar} />
+              {imageUrl || data.avatar ? (
+                <img alt={data.name} className="h-full w-full rounded-full object-cover" src={imageUrl || data.avatar} />
               ) : (
                 <span className="text-white font-bold text-sm">{initial}</span>
               )}
@@ -95,7 +110,57 @@ export default function ProfileDropdown() {
 
       {/* Dropdown panel */}
       {isOpen && (
-        <div className="absolute right-0 top-full mt-2 w-64 origin-top-right rounded-2xl border border-white/10 bg-[#0d1117]/95 p-2 shadow-2xl shadow-black/40 backdrop-blur-md z-[200] animate-in fade-in zoom-in-95 duration-150">
+        <div className="absolute right-0 top-full mt-2 w-72 origin-top-right rounded-2xl border border-slate-500/60 bg-[#0d1117] p-2 shadow-2xl shadow-black/45 z-[200] animate-in fade-in zoom-in-95 duration-150">
+
+          <button
+            type="button"
+            onClick={() => setIsProfileExpanded((v) => !v)}
+            className="group mb-1 w-full flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-left transition-all duration-150 hover:border-white/10 hover:bg-white/5"
+          >
+            <span className="text-gray-400 group-hover:text-white transition-colors"><User className="w-4 h-4" /></span>
+            <span className="flex-1 font-medium text-sm text-gray-300 group-hover:text-white transition-colors leading-tight">Profile</span>
+            <ChevronDown className={`w-4 h-4 text-gray-400 transition-transform ${isProfileExpanded ? 'rotate-180' : ''}`} />
+          </button>
+
+          {isProfileExpanded && (
+            <div className="mb-2 space-y-0.5 rounded-xl border border-slate-600/70 bg-slate-900/80 p-2">
+              {profileItems.map((item) => (
+                <button
+                  key={item.label}
+                  onClick={() => { item.onClick(); setIsOpen(false); }}
+                  className="group w-full flex items-center gap-2.5 rounded-xl border border-transparent px-3 py-2.5 text-left transition-all duration-150 hover:border-slate-500/40 hover:bg-slate-800/70"
+                >
+                  <span className="text-slate-400 group-hover:text-white transition-colors">{item.icon}</span>
+                  <span className="flex-1 font-medium text-sm text-slate-300 group-hover:text-white transition-colors leading-tight">
+                    {item.label}
+                  </span>
+                  {item.value && (
+                    <span className="rounded-md px-2 py-0.5 font-medium text-[10px] tracking-tight border border-sky-400/25 bg-sky-500/10 text-sky-300">
+                      {item.value}
+                    </span>
+                  )}
+                </button>
+              ))}
+
+              <div className="rounded-xl border border-slate-600/80 bg-slate-900 p-2.5">
+                <label className="mb-1 block text-xs font-medium text-slate-300">Change Image URL</label>
+                <input
+                  type="text"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  placeholder="Paste image URL"
+                  className="w-full rounded-md border border-slate-600 bg-slate-800 px-2 py-1.5 text-xs text-slate-100 outline-none focus:border-sky-400"
+                />
+                <button
+                  type="button"
+                  onClick={handleImageSave}
+                  className="mt-2 rounded-md bg-sky-500 px-2 py-1 text-xs font-medium text-slate-950 hover:bg-sky-400"
+                >
+                  Apply Image
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* Menu items */}
           <div className="space-y-0.5">
@@ -110,7 +175,7 @@ export default function ProfileDropdown() {
                   {item.label}
                 </span>
                 {item.value && (
-                  <span className="rounded-md px-2 py-0.5 font-medium text-[10px] tracking-tight border border-purple-500/20 bg-purple-500/10 text-purple-400">
+                  <span className="rounded-md px-2 py-0.5 font-medium text-[10px] tracking-tight border border-sky-400/25 bg-sky-500/10 text-sky-300">
                     {item.value}
                   </span>
                 )}

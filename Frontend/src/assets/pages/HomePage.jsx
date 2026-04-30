@@ -34,12 +34,23 @@ const sections = [
     route: null,
     available: false,
   },
+  {
+    id: 'devops',
+    title: 'DevOps',
+    subtitle: 'Cloud & DevOps Engineering',
+    description: 'Master Docker, Kubernetes, CI/CD pipelines, and cloud infrastructure.',
+    icon: '⚙️',
+    color: 'blue',
+    route: null,
+    available: false,
+  },
 ];
 
 const colorMap = {
   cyan:   { bg: 'bg-cyan-500/10', border: 'border-cyan-500/30', hover: 'hover:border-cyan-400', text: 'text-cyan-400', glow: 'shadow-cyan-500/20', btnBg: 'bg-cyan-500 hover:bg-cyan-400' },
   purple: { bg: 'bg-purple-500/10', border: 'border-purple-500/30', hover: 'hover:border-purple-400', text: 'text-purple-400', glow: 'shadow-purple-500/20', btnBg: 'bg-purple-500 hover:bg-purple-400' },
   green:  { bg: 'bg-green-500/10', border: 'border-green-500/30', hover: 'hover:border-green-400', text: 'text-green-400', glow: 'shadow-green-500/20', btnBg: 'bg-green-500 hover:bg-green-400' },
+  blue:   { bg: 'bg-blue-500/10', border: 'border-blue-500/30', hover: 'hover:border-blue-400', text: 'text-blue-400', glow: 'shadow-blue-500/20', btnBg: 'bg-blue-500 hover:bg-blue-400' },
 };
 
 export default function HomePage() {
@@ -75,7 +86,7 @@ export default function HomePage() {
         </div>
 
         {/* Section Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
           {sections.map(section => {
             const c = colorMap[section.color];
             return (

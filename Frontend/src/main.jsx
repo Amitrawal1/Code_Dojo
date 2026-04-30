@@ -9,7 +9,7 @@ createRoot(document.getElementById("root")).render(
     <Auth0Provider
       domain="dev-e540wkp2c22wma0q.us.auth0.com"
       clientId="KVzt3y4sas4eXHHjuUfTaddU60ZEO3ym"
-      authorizationParams={{ redirect_uri: "http://localhost:5173/home/" }}
+      authorizationParams={{ redirect_uri: window.location.origin + "/home/" }}
     >
       <App />
     </Auth0Provider>

@@ -31,7 +31,7 @@ export default function Navbar() {
         className="flex items-center justify-center gap-2 cursor-pointer group"
       >
         <span className="bg-cyan-500 text-black text-xs font-bold px-1.5 py-0.5 rounded transition-transform group-hover:scale-110">✕</span>
-        <span className="text-white font-black tracking-[0.3em] text-lg uppercase">CODE <span className="text-cyan-400">DOJO</span></span>
+        <span className="text-white font-black tracking-wider text-lg">CODE <span className="text-cyan-400">DOJO</span></span>
       </div>
 
       {/* Right: Profile Dropdown */}
