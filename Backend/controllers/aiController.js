@@ -50,33 +50,41 @@ async function callGemini(prompt) {
   }
 }
 
-// @desc    Generate an MCQ about user's code logic
+// @desc    Generate an MCQ about user's code logic based on stage
 // @route   POST /api/ai/ask-question
 export const askQuestion = async (req, res) => {
   try {
-    const { problemTitle, problemDescription, userCode, language } = req.body;
+    const { problemTitle, problemDescription, userCode, language, stage = 1 } = req.body;
 
     if (!problemTitle || !userCode) {
       return res.status(400).json({ message: "Problem title and user code are required." });
     }
 
-    const prompt = `You are the "AI Gatekeeper", an elite, uncompromising technical interviewer for an advanced campus coding platform.
-The system has flagged this ${language} code for "${problemTitle}" as HIGHLY SUSPICIOUS (potential copy-paste). Trigger HARDCORE MODE.
+    let difficultyInstruction = "";
+    if (stage === 1) {
+      difficultyInstruction = "STAGE 1 (EASY): Ask a basic conceptual question about the algorithm or general approach used in the code. Ensure it is very easy to answer for the author.";
+    } else if (stage === 2) {
+      difficultyInstruction = "STAGE 2 (MEDIUM): Ask a logic-based question involving time/space complexity or basic edge cases. Make it moderately challenging.";
+    } else {
+      difficultyInstruction = "STAGE 3 (HARD): Find the most mathematically complex, obscure, or critical line in their code and ask a deep theoretical question. This should be a hardcore test of understanding.";
+    }
+
+    const prompt = `You are the "AI Gatekeeper", an elite technical interviewer.
+The system is verifying the user's ${language} code for "${problemTitle}".
 Their code:
 \`\`\`${language}
 ${userCode}
 \`\`\`
 
-Generate ONE extremely difficult MCQ to verify the user actually wrote and understands this code.
+Generate ONE MCQ to verify the user actually wrote and understands this code.
+${difficultyInstruction}
 
-CRITICAL HARDCORE RULES:
-1. NO BASIC QUESTIONS: Ignore simple loops, variable initializations, or basic syntax.
-2. TARGET COMPLEXITY: Find the most mathematically complex, obscure, or critical line in their code (e.g., a complex pointer swap, a DP state transition equation, a bitwise operation, or an edge-case return statement).
-3. THE QUESTION: Ask a deep, theoretical "Why exactly this?" or "What breaks if this specific math/logic is altered?" question.
-4. EXACTLY 5 OPTIONS: 1 correct answer and 4 distractors.
-5. THE TRAP DISTRACTORS: The 4 incorrect options MUST be trap answers designed to catch copy-pasters. They should use advanced technical jargon and sound highly plausible, representing common misunderstandings of that specific algorithm. Make it impossible to guess.
-6. Output ONLY valid JSON:
-{"question":"string","options":["A","B","C","D","E"],"correctAnswerIndex":0,"explanation":"string"}`;
+CRITICAL RULES:
+1. EXACTLY 5 OPTIONS: 1 correct answer and 4 distractors.
+2. The 4 incorrect options must represent common misunderstandings.
+3. Provide a 'hint' that gently guides the user to the correct answer WITHOUT giving it away.
+4. Output ONLY valid JSON:
+{"question":"string","options":["A","B","C","D","E"],"correctAnswerIndex":0,"explanation":"string","hint":"string"}`;
 
     const aiResponse = await callGemini(prompt);
     
