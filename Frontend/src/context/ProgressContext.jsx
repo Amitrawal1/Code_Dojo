@@ -13,7 +13,7 @@ export function ProgressProvider({ children }) {
 
   // Hardcoded email for testing since auth is not fully wired up yet
   const USER_EMAIL = "test@codedojo.com";
-  const API_URL = "http://localhost:5001/api/progress";
+  const API_URL = "http://localhost:5000/api/progress";
 
   // Fetch initial progress on load
   useEffect(() => {

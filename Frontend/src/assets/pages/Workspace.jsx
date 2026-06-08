@@ -5,7 +5,7 @@ import { Panel, Group as PanelGroup, Separator as PanelResizeHandle } from "reac
 import { problems } from '../../../../Backend/data/dsaProblems.js';
 import { useProgress } from '../../context/ProgressContext';
 
-const API_BASE = 'http://localhost:5001/api/ai';
+const API_BASE = 'http://localhost:5000/api/ai';
 
 const diffColor = (d) =>
   d === 'easy' ? 'bg-green-500/20 text-green-400 border-green-500/40' :

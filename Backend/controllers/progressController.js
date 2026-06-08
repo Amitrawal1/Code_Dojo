@@ -1,3 +1,4 @@
+import mongoose from 'mongoose';
 import User from '../models/User.js';
 
 // @desc    Get user progress profile
@@ -5,6 +6,51 @@ import User from '../models/User.js';
 export const getProgress = async (req, res) => {
   try {
     const { email } = req.params;
+    // If MongoDB isn't connected, return a deterministic dummy payload for local development
+    if (mongoose.connection.readyState !== 1) {
+      const user = {
+        email,
+        identity: {
+          fullName: "Amit Rawal",
+          degree: "B.Tech CSE - Final Year",
+          currentTitle: "Algorithm Assassin",
+          level: 42,
+          currentXP: 8750,
+          globalRank: 1337
+        },
+        coreMetrics: {
+          socraticTrustScore: 88.5,
+          currentStreakDays: 14,
+          skillRadar: {
+            algorithmicThinking: 92,
+            codeOptimization: 85,
+            aiDefense: 88,
+            consistency: 78
+          }
+        },
+        proofOfWork: {
+          activityHeatmap: [
+            { date: new Date(Date.now() - 6*86400000).toISOString().split('T')[0], submissions: 3 },
+            { date: new Date(Date.now() - 5*86400000).toISOString().split('T')[0], submissions: 5 },
+            { date: new Date(Date.now() - 4*86400000).toISOString().split('T')[0], submissions: 2 },
+            { date: new Date(Date.now() - 3*86400000).toISOString().split('T')[0], submissions: 0 },
+            { date: new Date(Date.now() - 2*86400000).toISOString().split('T')[0], submissions: 7 },
+            { date: new Date(Date.now() - 1*86400000).toISOString().split('T')[0], submissions: 4 },
+            { date: new Date().toISOString().split('T')[0], submissions: 6 }
+          ],
+          recentBattleLog: [
+            { problemIdx: 0, problemName: "Alien Dictionary", difficulty: "Hard", stagesCleared: 3, hintsUsed: 0, xpGained: 500 }
+          ],
+          trophies: [
+            { title: "Untouchable", description: "Cleared 5 Hard problems without AI hints.", icon: "🛡️" }
+          ],
+          solvedHistory: []
+        }
+      };
+
+      return res.status(200).json(user);
+    }
+
     let user = await User.findOne({ email });
 
     // For testing/development, create a dummy user if none exists
